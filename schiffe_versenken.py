@@ -18,7 +18,7 @@ LEGENDE = {
 	'none': 	'.',
 	'water':	'o',
 	'hit':		'x',
-	'sunk':		'*',
+	'sunk':		'#',
 	'ship':		'#'
 }
 
@@ -29,7 +29,7 @@ SCHIFFE = [
 	[3,	{'name': 'Zerstörer',		'size': 3}],
 	[4,	{'name': 'U-Boot',			'size': 2}]
 ]
- 
+
 class Karte(object):
 	def __init__(self):
 		self.map = {}
@@ -40,7 +40,7 @@ class Karte(object):
 
 		assert len(koor) == 2, "request tuple for coordinates"
 		return self.map.get(koor, ' ')
-		
+
 	def versenkt(self, koor):
 		assert len(koor) == 2, "request tuple for coordinates"
 
@@ -59,8 +59,8 @@ class Karte(object):
 	# Setze die Liste der Felder auf 'status'
 	def _set_fields(self, fields, status):
 		"""Set a list of fields to given status"""
-		assert isinstance(fields, (list,tuple)), \
-			"'fields' must be a list of coordinates eg. '[(1,4)]'"
+		assert isinstance(fields, (set,list,tuple)), \
+			"'fields' must be a list or tuple of coordinates eg. '[(1,4)]'"
 
 		#print("FIELDS:",fields)
 		for (x,y) in fields:
@@ -88,12 +88,12 @@ class Karte(object):
 	# nachbarn
 	# Returns list of neighbour fields koordinates
 	#
-	def nachbarn(self, koor_list, feld=None, recursiv=False):
+	def nachbarn(self, koor_list, feld=None, include=False, recursive=False):
 		"""Returns all neighbour fields of the given field list."""
 #		assert isinstance(koor_list, list), "'koor_list' must be a list of coordinates"
 
 		#FIXME: 'recursiv' not implemented
-		result_list = {}
+		result_set = set()
 		for koor in koor_list:
 			(x, y) = koor
 			pot_x = (x,)
@@ -117,13 +117,14 @@ class Karte(object):
 				for yi in pot_y:
 					status = self.status((xi,yi))
 					if feld == None or feld == status:
-						result_list[(xi,yi)] = status
+						result_set.add( (xi,yi) )
 
-		# given koordinates are not neighbours
-		for koor in koor_list:
-			if koor in result_list: del result_list[koor]
+		# delete original coordinates if include is not set
+		if not include:
+			for koor in koor_list:
+				if koor in result_set: result_set.remove(koor)
 
-		return tuple(result_list.keys())
+		return list(result_set)
 
 
 	def regions(self, size, feld=None):
@@ -150,9 +151,9 @@ class Karte(object):
 				else:
 					if feld == self.status(x,y):
 						pos.append((x,y))
-					else:					   
+					else:
 						if len(pos) >= size:
-							positions.append(pos) 
+							positions.append(pos)
 						pos = []
 			if len(pos) >= size:
 				positions.append(pos); #print(x,y, 'got region', pos)
@@ -174,20 +175,21 @@ class Karte(object):
 				else:
 					if feld == self.status(x,y):
 						pos.append((x,y))
-					else:					   
+					else:
 						if len(pos) >= size:
-							positions.append(pos) 
+							positions.append(pos)
 						pos = []
 			if len(pos) >= size:
 				positions.append(pos); #print(x,y, 'got region', pos)
 
 		return positions
 
+
 	def bombard(self):
 		"""Find next coordinate to bomb."""
 
 		return RAND.choice( self._get_fields() )
-	
+
 
 	def print(self):
 		# Drucke die Koordinaten A..J
@@ -225,20 +227,72 @@ class Karte(object):
 		return region[first:first+size]
 
 
+
+
+# classmethod
+def xy(string):
+	xs = string[0:1].upper()
+	ys = int(string[1:])
+	# FIXME: try/catch --> return None
+	x = X_SET.index(string[0:1].upper())
+	y = Y_SET.index(int(string[1:]))
+
+	return (x,y)
+
+
 ##
 ##  MAIN
 ##
 
 if __name__ == '__main__':
 
+	import re
+
 	# Set computer ships
 	ship_map = Karte()
 	for num,ship in SCHIFFE:
-#		print('SHIP:',ship, 'NUM:',num, 'DICT?', isinstance(ship, dict), sep="--")
 		for n in range(num):
-			print('ship',ship)
 			ship_map.place_ship(ship)
 	ship_map.print()
-		
+
+	bomb_map = Karte()
+	while True:
+		line = input( "\nCaptain> " )
+		token = line.rstrip("\n").split()
+		token.append('')	# empty lines fail to pop()
+
+		cmd = token.pop(0).lower()
+		if cmd == 'quit' or cmd == 'ende' or cmd == 'stop':
+			break
+		elif cmd == '':
+			bomb_map.print()
+		elif cmd == 'look':
+			ship_map.print()
+		elif re.match('[a-z]\d+', cmd):
+			koor = xy(cmd)
+			if koor == None:
+				print( "-- Koordinaten bitte in der Form 'C10' eingeben")
+				next
+			if ship_map.status(koor) == LEGENDE['ship']:
+				bomb_map.treffer(koor)
+
+				# check for sunken ship
+				ship = set(ship_map.nachbarn( [koor],
+					feld=LEGENDE['ship'], include=True, recursive=True
+				))
+				hits = set(bomb_map.nachbarn( [koor],
+					feld=LEGENDE['hit'], include=True, recursive=True
+				))
+				if len(ship-hits) < 1:
+					bomb_map._set_fields(ship, LEGENDE['sunk'])
+					print( "-- VERSENKT!")
+				else:
+					print( "-- TREFFER!" )
+
+			else:
+				print( "-- Wasser." )
+				bomb_map.wasser(koor)
+		else:
+			print( "-- Häh? Versuche es mal mit 'hilfe'.")
 
 #EOF
