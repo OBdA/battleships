@@ -1,7 +1,5 @@
-> a.nachbarn(('B',5))
-Traceback (most recent call last):
-  File "<stdin>", line 1, in <module>
-  File "schiffe_versenken.py", line 71, in nachbarn
-    
-TypeError: 'int' object is not iterable
+
+--	nachbarn() rekursiv machen
+
+--	Befehl 'hilfe' implementieren
 
