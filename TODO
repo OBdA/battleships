@@ -1,5 +1,29 @@
 
---	nachbarn() rekursiv machen
+--	schiffszähler (wieviele schiffe wurden versenkt)
+
+--	Algorithmen
+	- mark_sunken_ship()
+	- search_and_destroy_hit_ship()
+	- shot_biggest_hole()
+	- shot_random()
+
+--	Strategieimplementierung: computer level 0-10 (0-100%)
+	- last_shot?
+		- sunk: WS(level+50%): benutze mark_sunken_ship()
+	- last_shot?
+		- hit: WS(level+20%): benutze search_and_destroy_hit_ship()
+		- any: WS(level): benutze shot_biggest_hole()
+		- ELSE benutze shot_random()
 
 --	Befehl 'hilfe' implementieren
 
+
+==	REWRITE
+
+--	LEGENDE überall nutzen
+
+--	Karte umschreiben
+	- enthält zwei Karten: die Schiffskarte und die Trefferkarte
+	- zwei Zähler: Anzahl vorhandener Schiffe, Anzahl getroffener Schiffe
+	- random.Random() object
+#EOF
