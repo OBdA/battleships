@@ -90,9 +90,13 @@ class Karte(object):
 	#
 	def nachbarn(self, koor_list, feld=None, include=False, recursive=False):
 		"""Returns all neighbour fields of the given field list."""
-#		assert isinstance(koor_list, list), "'koor_list' must be a list of coordinates"
+#		assert isinstance(koor_list, [set,list]), \
+#			"'koor_list' must be a list of coordinates"
 
-		#FIXME: 'recursiv' not implemented
+		# koor_last holds last neighbour set,
+		# needed for recursive final condition
+		koor_last = set(koor_list)
+
 		result_set = set()
 		for koor in koor_list:
 			(x, y) = koor
@@ -119,11 +123,19 @@ class Karte(object):
 					if feld == None or feld == status:
 						result_set.add( (xi,yi) )
 
-		# delete original coordinates if include is not set
+			#FIXME: 'recursiv' not implemented
+			# recursive: final condition: neighbour set has not changed
+			if recursive and len(result_set - koor_last) > 0:
+				#FIXME: make a set
+				result_set = set(self.nachbarn(
+					result_set, feld, recursive=True, include=True
+				))
+		# delete original coordinates if 'include' is not set
 		if not include:
 			for koor in koor_list:
 				if koor in result_set: result_set.remove(koor)
 
+		#FIXME: make a set
 		return list(result_set)
 
 
@@ -285,6 +297,7 @@ if __name__ == '__main__':
 				))
 				if len(ship-hits) < 1:
 					bomb_map._set_fields(ship, LEGENDE['sunk'])
+					bomb_map._set_fields(bomb_map.nachbarn(ship), LEGENDE['water'])
 					print( "-- VERSENKT!")
 				else:
 					print( "-- TREFFER!" )
