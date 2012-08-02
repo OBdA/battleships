@@ -239,6 +239,18 @@ class Karte(object):
 		return region[first:first+size]
 
 
+	# Funktion zum Markieren
+	def mark_sunken_ship(self, ship):
+		self._set_fields(self.nachbarn(ship), LEGENDE['water'])
+
+
+	# Funktionen zum Auswählen eines Ziels
+	def search_ship(self, ship):
+		return RAND.choice(self.nachbarn(ship))
+
+	def destroy_ship(self, ship):
+		#FIXME: finde Lage und bombardiere nur kurze seiten
+		return RAND.choice(self.nachbarn(ship))
 
 
 # classmethod
