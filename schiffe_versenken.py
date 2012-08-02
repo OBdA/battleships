@@ -17,8 +17,8 @@ RAND = random.Random()
 LEGENDE = {
 	'none': 	'.',
 	'water':	'o',
-	'hit':		'x',
-	'sunk':		'#',
+	'hit':		'+',
+	'sunk':		'*',
 	'ship':		'#'
 }
 
@@ -39,21 +39,21 @@ class Karte(object):
 		"""Returns status of one field."""
 
 		assert len(koor) == 2, "request tuple for coordinates"
-		return self.map.get(koor, ' ')
+		return self.map.get(koor, LEGENDE['none'])
 
 	def versenkt(self, koor):
 		assert len(koor) == 2, "request tuple for coordinates"
 
-		fields = self.nachbarn([koord], feld='x', recursiv=True)
-		self._set_fields(fields, '*')
+		fields = self.nachbarn([koord], feld=LEGENDE['hit'], recursiv=True)
+		self._set_fields(fields, LEGENDE['sunk'])
 
 	def treffer(self, koor):
 		assert len(koor) == 2, "request tuple for coordinates"
-		self.map[koor] = 'x'
+		self.map[koor] = LEGENDE['hit']
 
 	def wasser(self, koor):
 		assert len(koor) == 2, "request tuple for coordinates"
-		self.map[koor] = 'o'
+		self.map[koor] = LEGENDE['water']
 
 
 	# Setze die Liste der Felder auf 'status'
