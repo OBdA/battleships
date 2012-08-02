@@ -260,12 +260,16 @@ if __name__ == '__main__':
 
 	import re
 
+	ship_count = 0
+	sunk_count = 0
+
 	# Set computer ships
 	ship_map = Karte()
 	for num,ship in SCHIFFE:
 		for n in range(num):
 			ship_map.place_ship(ship)
-	ship_map.print()
+			ship_count += 1
+	print("\nCaptain!\nEs wurden {0} Schiffe verteilt.".format(ship_count))
 
 	bomb_map = Karte()
 	while True:
@@ -299,6 +303,16 @@ if __name__ == '__main__':
 					bomb_map._set_fields(ship, LEGENDE['sunk'])
 					bomb_map._set_fields(bomb_map.nachbarn(ship), LEGENDE['water'])
 					print( "-- VERSENKT!")
+					sunk_count += 1
+
+					# check: all ships sunk?
+					if sunk_count >= ship_count:
+						ship_map.print()
+						bomb_map.print()
+						print("\nCaptain!\nHurra, Du hast alle Schiffe gefunden!")
+						exit(0)
+					print("\nCaptain!\nEs fehlen nur noch {0} Schiffe!"\
+						.format(ship_count-sunk_count))
 				else:
 					print( "-- TREFFER!" )
 
