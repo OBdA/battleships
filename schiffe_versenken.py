@@ -300,10 +300,11 @@ if __name__ == '__main__':
 					feld=LEGENDE['hit'], include=True, recursive=True
 				))
 				if len(ship-hits) < 1:
+					print( "-- VERSENKT!")
 					bomb_map._set_fields(ship, LEGENDE['sunk'])
 					bomb_map._set_fields(bomb_map.nachbarn(ship), LEGENDE['water'])
-					print( "-- VERSENKT!")
 					sunk_count += 1
+					bomb_map.mark_sunken_ship(ship)
 
 					# check: all ships sunk?
 					if sunk_count >= ship_count:
