@@ -1,16 +1,15 @@
 
---	schiffszähler (wieviele schiffe wurden versenkt)
-
 --	Algorithmen
-	- mark_sunken_ship()
-	- search_and_destroy_hit_ship()
-	- shot_biggest_hole()
-	- shot_random()
+	- <None> mark_sunken_ship()
+	- <koor> search_ship()			finde erstmals getroffenes schiff
+	- <koor> destroy_ship()		zerstöre schiff, welches min. 2 treffer hat
+	- <koor> shot_biggest_hole()
+	- <koor> shot_random()
 
 --	Strategieimplementierung: computer level 0-10 (0-100%)
-	- last_shot?
+	* update_hit_map(last_shot)	
 		- sunk: WS(level+50%): benutze mark_sunken_ship()
-	- last_shot?
+	* next_shot(last_shot)
 		- hit: WS(level+20%): benutze search_and_destroy_hit_ship()
 		- any: WS(level): benutze shot_biggest_hole()
 		- ELSE benutze shot_random()
