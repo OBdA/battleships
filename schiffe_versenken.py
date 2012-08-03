@@ -197,12 +197,6 @@ class Karte(object):
 		return positions
 
 
-	def bombard(self):
-		"""Find next coordinate to bomb."""
-
-		return RAND.choice( self._get_fields() )
-
-
 	def print(self):
 		# Drucke die Koordinaten A..J
 		print( "    ", end="" )
@@ -239,18 +233,56 @@ class Karte(object):
 		return region[first:first+size]
 
 
-	# Funktion zum Markieren
+	## Funktion zum Markieren
 	def mark_sunken_ship(self, ship):
 		self._set_fields(self.nachbarn(ship), LEGENDE['water'])
 
 
-	# Funktionen zum Auswählen eines Ziels
+	## Funktionen zum Auswählen eines Ziels
+	def shot_random(self):
+		"""Find a random coordinate to bomb onto."""
+		return RAND.choice( self._get_fields() )
+
 	def search_ship(self, ship):
 		return RAND.choice(self.nachbarn(ship))
 
 	def destroy_ship(self, ship):
-		#FIXME: finde Lage und bombardiere nur kurze seiten
-		return RAND.choice(self.nachbarn(ship))
+		known_ship = self.nachbarn(ship)
+		if len(known_ship) == 1: return RAND.choice(self.nachbarn(ship))
+
+		# Lage des Schiffes:
+		# eine Achse ist fest, die andere variiert: finde die feste Achse,
+		# sortiere die Indizes der variierende Achse um mögliche Koordinaten
+		# zu finden.
+		x_set = set()
+		y_set = set()
+		for koord in ship:
+			(x,y) = koord
+			x_set.add(x)
+			y_set.add(y)
+
+		print("x-set:",x_set,"y-set",y_set)
+		assert len(x_set)+len(y_set) == len(ship)+1, "ship fields not in a row"
+		assert len(y_set) == 1 or len(x_set) == 1, "ship fields not in a row"
+
+		target_list=set()
+		if len(x_set) == 1:
+			i_var = list(y_set)
+			i_var.sort()
+			if i_var[0] > 0:
+				target_list.add((list(x_set)[0],i_var[0]-1))
+			if i_var[-1] < len(Y_SET)-1:
+				target_list.add((list(x_set)[0],i_var[-1]+1))
+		else:
+			i_var = list(x_set)
+			i_var.sort()
+			if i_var[0] > 0:
+				target_list.add((i_var[0]-1,list(y_set)[0]))
+			if i_var[-1] < len(X_SET)-1:
+				target_list.add((i_var[-1]+1,list(y_set)[0]))
+			
+		print('target-list:',target_list)
+		return target_list
 
 
 # classmethod
@@ -260,9 +292,7 @@ def xy(string):
 	# FIXME: try/catch --> return None
 	x = X_SET.index(string[0:1].upper())
 	y = Y_SET.index(int(string[1:]))
-
 	return (x,y)
-
 
 ##
 ##  MAIN
