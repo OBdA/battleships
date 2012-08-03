@@ -285,7 +285,42 @@ class Karte(object):
 		return target_list
 
 
-# classmethod
+
+	def find_ship(self, size):
+		targets = dict()
+		t_map = dict()
+		regions = self.regions(size)
+		for region in regions:
+			val_list = calc_points(region)
+			for k,v in val_list:
+				t_map[k] += v
+
+		print("T-MAP:", t_map)
+		max_val = max(t_map.values())
+
+		targets = {key:val for key,val in t_map.items() if val == max_val}		
+		return t_map
+
+
+## classmethods
+
+def calc_points(region):
+	"""Returns dictionary of koordinates with values."""
+
+	values = {}
+	n = len(region)
+	for i in range(n//2):
+		val = 2*(i+1)
+		values[region[i]] = val
+		values[region[-(i+1)]] = val
+	if n%2 != 0:
+		i = n//2
+		values[region[i]] = 2*(i+1)
+
+	print("VALUES:",values)
+	return values
+
+
 def xy(string):
 	xs = string[0:1].upper()
 	ys = int(string[1:])
