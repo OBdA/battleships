@@ -2,9 +2,9 @@
 --	Algorithmen
 	ok <None> mark_sunken_ship(last_shot)
 	ok <koor> search_ship(last_shot)
-	- <koor> destroy_ship(last_shot)
-	- <koor> shot_biggest_hole(last_shot)
-	- <koor> shot_random(last_shot)
+	ok <koor> destroy_ship(last_shot)
+	- <koor> find_ship(last_shot)
+	ok <koor> shot_random(last_shot)
 
 --	Strategieimplementierung: computer level 0-10 (0-100%)
 	* update_hit_map(last_shot)	
