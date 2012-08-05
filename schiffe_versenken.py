@@ -379,6 +379,10 @@ if __name__ == '__main__':
 			bomb_map.print()
 		elif cmd == 'peek':
 			ship_map.print()
+#		elif cmd == 'shot':
+#			bomb_map.wasser(xy(token.pop(0)))
+		elif cmd == 'find_ship':
+			bomb_map.find_ship(2, debug=True)
 		elif re.match('[a-z]\d+', cmd):
 			koor = xy(cmd)
 			if koor == None:
