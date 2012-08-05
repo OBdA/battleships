@@ -211,7 +211,12 @@ class Karte(object):
 		for y in range(len(Y_SET)):
 			print( "{0:2}| ".format(Y_SET[y]), end="")
 			for x in range(len(X_SET)):
-				print( self.map.get((x,y), "."), end=" ")
+				val = self.map.get((x,y), ".")
+				print("{0:2}".format(val), end='')
+#				if isinstance(val, int):
+#					print("{0:2}".format(val), end='')
+#				else:
+#					print("{0:2}".format(val), end='')
 			print()
 
 
