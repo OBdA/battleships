@@ -373,7 +373,7 @@ if __name__ == '__main__':
 		token.append('')	# empty lines fail to pop()
 
 		cmd = token.pop(0).lower()
-		if cmd == 'quit' or cmd == 'ende' or cmd == 'stop':
+		if re.match('^(quit|exit|ende|stop)', cmd):
 			break
 		elif cmd == '':
 			bomb_map.print()
