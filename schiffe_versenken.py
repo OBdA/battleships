@@ -287,6 +287,9 @@ class Karte(object):
 
 
 	def find_ship(self, size):
+		"""Sucht Schiff auf der Karte, indem das grösste 'Loch' 
+		beschossen wird."""
+
 		targets = dict()
 		t_map = dict()
 		regions = self.regions(size)
@@ -364,7 +367,7 @@ if __name__ == '__main__':
 			break
 		elif cmd == '':
 			bomb_map.print()
-		elif cmd == 'look':
+		elif cmd == 'peek':
 			ship_map.print()
 		elif re.match('[a-z]\d+', cmd):
 			koor = xy(cmd)
@@ -373,6 +376,15 @@ if __name__ == '__main__':
 					"einer Zahl ein.\n-- Zum Beispiel: {0}{1}"\
 					.format(RAND.choice(X_SET),RAND.choice(Y_SET)) )
 				continue
+			elif bomb_map.status(koor) != LEGENDE['none']:
+				feld = bomb_map.status(koor)
+				print( "-- Oh, Captain!")
+				print( "-- Im Feld {0} ist doch schon '{1}'".format(
+					X_SET[koor[0]] + str(Y_SET[koor[1]]),
+					feld
+				))
+				continue
+
 			if ship_map.status(koor) == LEGENDE['ship']:
 				bomb_map.treffer(koor)
 
