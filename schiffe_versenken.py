@@ -158,7 +158,7 @@ class Karte(object):
 						pos.append((x,y))
 					else:
 						if len(pos) >= size:
-							positions.append(pos); #print(x,y, 'got region', pos)
+							positions.append(pos)
 						else:
 							pass
 						pos = []
@@ -182,7 +182,7 @@ class Karte(object):
 						pos.append((x,y))
 					else:
 						if len(pos) >= size:
-							positions.append(pos); #print(x,y, 'got region', pos)
+							positions.append(pos)
 						else:
 							pass
 						pos = []
@@ -195,7 +195,7 @@ class Karte(object):
 							positions.append(pos)
 						pos = []
 			if len(pos) >= size:
-				positions.append(pos); #print(x,y, 'got region', pos)
+				positions.append(pos)
 
 		return positions
 
@@ -236,7 +236,9 @@ class Karte(object):
 		self._set_fields(region[first:first+size], LEGENDE['ship'])
 
 		# place water around all ship fields
-		self._set_fields(self.nachbarn(region[first:first+size]), LEGENDE['water'])
+		self._set_fields(
+			self.nachbarn(region[first:first+size]),
+			LEGENDE['water'])
 
 		return region[first:first+size]
 
