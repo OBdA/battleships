@@ -389,8 +389,11 @@ if __name__ == '__main__':
 						bomb_map.print()
 						print("\nCaptain!\nHurra, Du hast alle Schiffe gefunden!")
 						exit(0)
-					print("\nCaptain!\nEs fehlen nur noch {0} Schiffe!"\
+					if ship_count-sunk_count > 1:
+						print("\nCaptain!\nEs fehlen nur noch {0} Schiffe!"\
 						.format(ship_count-sunk_count))
+					else:
+						print("\nCaptain!\nEs fehlt nur noch ein Schiff!")
 				else:
 					print( "-- TREFFER!" )
 
