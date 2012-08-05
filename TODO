@@ -1,3 +1,7 @@
+== BUGS
+
+--	Schuss auf versunkenes Schiff wird als Treffer gewertet.
+
 
 --	Algorithmen
 	ok <None> mark_sunken_ship(last_shot)
