@@ -322,11 +322,16 @@ def calc_points(region):
 
 
 def xy(string):
+	if len(string) < 2: return None
+
 	xs = string[0:1].upper()
 	ys = int(string[1:])
-	# FIXME: try/catch --> return None
-	x = X_SET.index(string[0:1].upper())
-	y = Y_SET.index(int(string[1:]))
+	try:
+		x = X_SET.index(string[0:1].upper())
+		y = Y_SET.index(int(string[1:]))
+	except:
+		return None
+
 	return (x,y)
 
 ##
@@ -364,8 +369,10 @@ if __name__ == '__main__':
 		elif re.match('[a-z]\d+', cmd):
 			koor = xy(cmd)
 			if koor == None:
-				print( "-- Koordinaten bitte in der Form 'C10' eingeben")
-				next
+				print( "-- Gib ein Feld bitte mit einem Buchstaben und " \
+					"einer Zahl ein.\n-- Zum Beispiel: {0}{1}"\
+					.format(RAND.choice(X_SET),RAND.choice(Y_SET)) )
+				continue
 			if ship_map.status(koor) == LEGENDE['ship']:
 				bomb_map.treffer(koor)
 
