@@ -31,8 +31,11 @@ SCHIFFE = [
 ]
 
 class Karte(object):
-	def __init__(self):
-		self.map = {}
+	def __init__(self, dict=None):
+		if dict == None:
+			self.map = {}
+		else:
+			self.map = dict
 		self.rand = random.Random()
 
 	def status(self, koor):
