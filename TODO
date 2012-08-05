@@ -1,17 +1,22 @@
 == BUGS
-
 == DEVELOPMENT
 
-OK	Algorithmen
-	ok <None> mark_sunken_ship(last_shot)
-	ok <koor> search_ship(t_map, last_shot)
-	ok <koor> destroy_ship(t_map, last_shot)
-	ok <koor> find_ship(t_map, last_shot)
-	ok <koor> shot_random(t_map, last_shot)
+--	Algorithmen (changeing interfaces)
 
---	search_ship(), destroy_ship(), find_ship(), shot_random()
-	bekommen den letzten Schuss und target_map dict(koor: int)
-	geben eine target_map dict(koor: int) zurück 
+	- <koor>		rate_next_turn(self, last_status, debug=False)
+	  Sucht nächste Koordinate zum Schuss. 'debug' gibt Einzelheiten zur 
+	  Berechnung aus.
+
+	- <fields_list>	find_ships(self, fields=None)
+	  Sucht aus einer Liste von Feldern alle getroffenen Schiffe und
+	  eine Liste aller Schiffe zurück.
+	  Default für Fields: self._get_fields(LEGENDE['hit'])
+ 
+	- <target_list>	rate_unknown_regions(self, size=1, rate=1, debug=False)
+	- <target_list>	rate_destroy_ship(self, fields=None, rate=N)
+	- <target_list>	rate_ship_position(self, fields=None, rate=N/2)
+
+	- None			mark_sunken_ship(self, fields)
 
 --	Strategieimplementierung: computer level 0-10 (0-100%)
 	* update_hit_map(last_shot)	
