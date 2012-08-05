@@ -294,7 +294,7 @@ class Karte(object):
 
 
 
-	def find_ship(self, size):
+	def find_ship(self, size, debug=False):
 		"""Sucht Schiff auf der Karte, indem das grösste 'Loch' 
 		beschossen wird."""
 
@@ -303,14 +303,17 @@ class Karte(object):
 		regions = self.regions(size)
 		for region in regions:
 			val_list = calc_points(region)
-			for k,v in val_list:
-				t_map[k] += v
+			for k,v in val_list.items():
+				t_map[k] = t_map.get(k, 0) + v
 
-		print("T-MAP:", t_map)
+		if debug == True: Karte(t_map).print()
 		max_val = max(t_map.values())
 
 		targets = {key:val for key,val in t_map.items() if val == max_val}		
-		return t_map
+		if debug == True: print("Targets: {0}".\
+			format([X_SET[k[0]]+str(Y_SET[k[1]])  for k in targets.keys()]))
+
+		return targets
 
 
 ## classmethods
@@ -328,7 +331,6 @@ def calc_points(region):
 		i = n//2
 		values[region[i]] = 2*(i+1)
 
-	print("VALUES:",values)
 	return values
 
 
