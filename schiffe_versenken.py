@@ -51,7 +51,6 @@ class Karte(object):
 			self.map = {}
 		else:
 			self.map = dict
-		self.rand = random.Random()
 
 	def status(self, koor):
 		"""Returns status of one field."""
