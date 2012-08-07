@@ -61,11 +61,16 @@ class Karte(object):
 
 		return self.map.get(koor, LEGENDE['none'])
 
-	def versenkt(self, koor):
-		assert len(koor) == 2, "request tuple for coordinates"
 
-		fields = self.nachbarn([koord], feld=LEGENDE['hit'], recursiv=True)
-		self._set_fields(fields, LEGENDE['sunk'])
+	def set(self, koor, status):
+		"""Set status of a field."""
+		assert isinstance(koor,tuple),	"request tuple for coordinates"
+		assert len(koor) == 2,			"need two coordinates"
+		assert status in STATUS_SET,	"status must be STATUS_SET element"
+
+		#FIXME: use <status> in map directly
+		self.map[koor] = LEGENDE[status]
+
 
 	def treffer(self, koor):
 		assert len(koor) == 2, "request tuple for coordinates"
