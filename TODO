@@ -1,6 +1,16 @@
 == BUGS
 == DEVELOPMENT
 
+--	Ausbau der Karte(), Vorbereitung zu class Player()
+	ok konvention für parameter
+	ok set(self, koor, status)
+	ok status() umbenennen zu get(self, koor)
+	ok funktionen wasser(), treffer(), ... umschreiben zu set(self,koor,status)
+	- parameter/namen vereinheitlichen
+	- parameter rate für Bewertungsfunktionen (-> ,schiffe_versenken.py)
+	- anzahl in der SCHIFFE-Liste als {'num':3}
+	- <status> in allen funktionen durchsetzen 'x'->'hit', 'o'->'water, ...
+
 --	Algorithmen (changeing interfaces)
 
 	- <koor>		rate_next_turn(self, last_status, debug=False)
