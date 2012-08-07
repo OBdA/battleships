@@ -52,10 +52,13 @@ class Karte(object):
 		else:
 			self.map = dict
 
-	def status(self, koor):
-		"""Returns status of one field."""
 
-		assert len(koor) == 2, "request tuple for coordinates"
+	#FIXME: rename get(self, koor) -> <status>
+	def status(self, koor):
+		"""Returns status of a field."""
+		assert isinstance(koor,tuple),	"request tuple for coordinates"
+		assert len(koor) == 2,			"need two coordinates"
+
 		return self.map.get(koor, LEGENDE['none'])
 
 	def versenkt(self, koor):
