@@ -34,6 +34,8 @@ LEGENDE = {
 	'sunk':		'*',
 	'ship':		'#'
 }
+STATUS_SET = set(LEGENDE.keys())
+
 
 SCHIFFE = [
 	# <count>, <ship>
