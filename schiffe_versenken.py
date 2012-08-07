@@ -54,7 +54,7 @@ class Karte(object):
 
 
 	#FIXME: rename get(self, koor) -> <status>
-	def status(self, koor):
+	def get(self, koor):
 		"""Returns status of a field."""
 		assert isinstance(koor,tuple),	"request tuple for coordinates"
 		assert len(koor) == 2,			"need two coordinates"
@@ -135,7 +135,7 @@ class Karte(object):
 			# add all possible coordinates
 			for xi in pot_x:
 				for yi in pot_y:
-					status = self.status((xi,yi))
+					status = self.get((xi,yi))
 					if feld == None or feld == status:
 						result_set.add( (xi,yi) )
 
@@ -177,7 +177,7 @@ class Karte(object):
 						pos = []
 
 				else:
-					if feld == self.status(x,y):
+					if feld == self.get((x,y)):
 						pos.append((x,y))
 					else:
 						if len(pos) >= size:
@@ -201,7 +201,7 @@ class Karte(object):
 						pos = []
 
 				else:
-					if feld == self.status(x,y):
+					if feld == self.get((x,y)):
 						pos.append((x,y))
 					else:
 						if len(pos) >= size:
@@ -405,8 +405,8 @@ if __name__ == '__main__':
 					"einer Zahl ein.\n-- Zum Beispiel: {0}{1}"\
 					.format(RAND.choice(X_SET),RAND.choice(Y_SET)) )
 				continue
-			elif bomb_map.status(koor) != LEGENDE['none']:
-				feld = bomb_map.status(koor)
+			elif bomb_map.get(koor) != LEGENDE['none']:
+				feld = bomb_map.get(koor)
 				print( "-- Oh, Captain!")
 				print( "-- Im Feld {0} ist doch schon '{1}'".format(
 					X_SET[koor[0]] + str(Y_SET[koor[1]]),
@@ -414,7 +414,7 @@ if __name__ == '__main__':
 				))
 				continue
 
-			if ship_map.status(koor) == LEGENDE['ship']:
+			if ship_map.get(koor) == LEGENDE['ship']:
 				bomb_map.set(koor, 'hit')
 
 				# check for sunken ship
