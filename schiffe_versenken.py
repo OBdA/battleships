@@ -2,10 +2,6 @@
 
 import random
 
-# Feldgrösse
-X_SET = tuple('ABCDEFGHIJ')
-Y_SET = tuple( range(1, 11))
-
 # Zufallsgenerator
 RAND = random.Random()
 
@@ -25,6 +21,10 @@ RAND = random.Random()
 ##
 ## Definitionen
 ##
+
+# Feldgrösse
+X_SET = tuple('ABCDEFGHIJ')
+Y_SET = tuple( range(1, 11))
 
 # Mögliche Inhalte eines Kartenfeldes
 LEGENDE = {
