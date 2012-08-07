@@ -10,6 +10,19 @@ Y_SET = tuple( range(1, 11))
 RAND = random.Random()
 
 ##
+## Konventionen
+##
+
+# <koor>	tuple()				Koordinaten mit x- und y-Koordinate
+# <fields>	set of <koor>		Menge von Koordinaten
+# <region>	list of <koor>		Liste von zusammenhängenden Koordinaten
+# <regions>	list of <region>	Liste von Regionen
+# <status>	{STATUS_SET}		Status eines Feldes, {'none','water','hit',...}
+#
+# ship		is a <region>
+# ships		is a <regions>: a list of <region>
+
+##
 ## Definitionen
 ##
 
