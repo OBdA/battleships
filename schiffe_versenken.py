@@ -72,15 +72,6 @@ class Karte(object):
 		self.map[koor] = LEGENDE[status]
 
 
-	def treffer(self, koor):
-		assert len(koor) == 2, "request tuple for coordinates"
-		self.map[koor] = LEGENDE['hit']
-
-	def wasser(self, koor):
-		assert len(koor) == 2, "request tuple for coordinates"
-		self.map[koor] = LEGENDE['water']
-
-
 	# Setze die Liste der Felder auf 'status'
 	def _set_fields(self, fields, status):
 		"""Set a list of fields to given status"""
@@ -404,7 +395,7 @@ if __name__ == '__main__':
 		elif cmd == 'peek':
 			ship_map.print()
 #		elif cmd == 'shot':
-#			bomb_map.wasser(xy(token.pop(0)))
+#			bomb_map.set(xy(token.pop(0)), 'water')
 		elif cmd == 'find_ship':
 			bomb_map.find_ship(2, debug=True)
 		elif re.match('[a-z]\d+', cmd):
@@ -424,7 +415,7 @@ if __name__ == '__main__':
 				continue
 
 			if ship_map.status(koor) == LEGENDE['ship']:
-				bomb_map.treffer(koor)
+				bomb_map.set(koor, 'hit')
 
 				# check for sunken ship
 				ship = set(ship_map.nachbarn( [koor],
@@ -456,7 +447,7 @@ if __name__ == '__main__':
 
 			else:
 				print( "-- Wasser." )
-				bomb_map.wasser(koor)
+				bomb_map.set(koor, 'water')
 		else:
 			print( "-- Häh? Versuche es mal mit 'hilfe'.")
 
