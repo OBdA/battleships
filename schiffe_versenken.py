@@ -317,9 +317,14 @@ class Karte(object):
 
 
 
-	def find_ship(self, size, debug=False):
-		"""Sucht Schiff auf der Karte, indem das grösste 'Loch' 
-		beschossen wird."""
+	#FIXME: rename to rate_unknown_fields, return complete <target map>
+	#FIXME: add parameter rate=1
+	def find_ship(self, size=1, debug=False):
+		"""
+		Bewertet unbekannte Felder der Karte und gibt eine <target map> zurück.
+		Der Parameter 'size' gibt dabei die minimale Regiongrösse an
+		(default: 1).
+		"""
 
 		targets = dict()
 		t_map = dict()
