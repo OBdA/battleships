@@ -6,45 +6,48 @@
 	ok set(self, koor, status)
 	ok status() umbenennen zu get(self, koor)
 	ok funktionen wasser(), treffer(), ... umschreiben zu set(self,koor,status)
-	- parameter/namen vereinheitlichen
-	- umbenennen der funktionen find_*() in rate_*()
-	- parameter rate für Bewertungsfunktionen (-> ,schiffe_versenken.py)
-	- anzahl in der SCHIFFE-Liste als {'num':3}
-	- <status> in allen funktionen durchsetzen 'x'->'hit', 'o'->'water, ...
-	- cleanup comments
-	- class Player: Funktionen aus Karte() übertragen
-	- class Karte in class Map umbenennen
+	ok parameter/namen vereinheitlichen
+	ok nachbarn(): rename parameter 'feld' to 'status'
+	ok regions(): rename parameter 'feld' to 'status'
+	+ umbenennen der funktionen find_*() in rate_*()
+	  - find_ship() --> rate_unknown_fields() -> <target map>
+	+ parameter rate für Bewertungsfunktionen (-> ,schiffe_versenken.py)
+	+ anzahl in der SCHIFFE-Liste als {'num':3}
+	+ <status> in allen funktionen durchsetzen 'x'->'hit', 'o'->'water, ...
+	+ cleanup comments
+	+ class Player: Funktionen aus Karte() übertragen
+	+ class Karte in class Map umbenennen
 
 
 --	Algorithmen (changeing interfaces)
 
-	- bei einem Treffer können die diagonalen Felder ausgeschlossen werden
-	- nachbarn() brauch neue option filter={none,odd,even} für 
+	+ bei einem Treffer können die diagonalen Felder ausgeschlossen werden
+	+ nachbarn() brauch neue option filter={none,odd,even} für 
 	  {kein Filter(default), diagonale Felder, rechtwinklige Felder}
 	  --> impliziert recursive=False, da Verhalten nicht definiert
 
-	- <koor>		rate_next_turn(self, last_status, debug=False)
+	+ <koor>		rate_next_turn(self, last_status, debug=False)
 	  Sucht nächste Koordinate zum Schuss. 'debug' gibt Einzelheiten zur 
 	  Berechnung aus.
 
-	- <fields_list>	find_ships(self, fields=None)
+	+ <fields_list>	find_ships(self, fields=None)
 	  Sucht aus einer Liste von Feldern alle getroffenen Schiffe und
 	  eine Liste aller Schiffe zurück.
 	  Default für Fields: self._get_fields(LEGENDE['hit'])
  
-	- <target_list>	rate_unknown_regions(self, size=1, rate=1, debug=False)
-	- <target_list>	rate_destroy_ship(self, fields=None, rate=N)
-	- <target_list>	rate_ship_position(self, fields=None, rate=N/2)
+	+ <target_list>	rate_unknown_regions(self, size=1, rate=1, debug=False)
+	+ <target_list>	rate_destroy_ship(self, fields=None, rate=N)
+	+ <target_list>	rate_ship_position(self, fields=None, rate=N/2)
 
-	- None			mark_sunken_ship(self, fields)
+	+ None			mark_sunken_ship(self, fields)
 
 --	Strategieimplementierung: computer level 0-10 (0-100%)
 	* update_hit_map(last_shot)	
-		- sunk: WS(level+50%): benutze mark_sunken_ship()
+		+ sunk: WS(level+50%): benutze mark_sunken_ship()
 	* next_shot(last_shot)
-		- hit: WS(level+20%): benutze search_and_destroy_hit_ship()
-		- any: WS(level): benutze shot_biggest_hole()
-		- ELSE benutze shot_random()
+		+ hit: WS(level+20%): benutze search_and_destroy_hit_ship()
+		+ any: WS(level): benutze shot_biggest_hole()
+		+ ELSE benutze shot_random()
 
 --	Befehl 'hilfe' implementieren
 
@@ -54,7 +57,7 @@
 --	LEGENDE überall nutzen
 
 --	Karte umschreiben
-	- enthält zwei Karten: die Schiffskarte und die Trefferkarte
-	- zwei Zähler: Anzahl vorhandener Schiffe, Anzahl getroffener Schiffe
-	- random.Random() object
+	+ enthält zwei Karten: die Schiffskarte und die Trefferkarte
+	+ zwei Zähler: Anzahl vorhandener Schiffe, Anzahl getroffener Schiffe
+	+ random.Random() object
 #EOF
