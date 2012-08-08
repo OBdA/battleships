@@ -82,39 +82,39 @@ class Karte(object):
 		for (x,y) in fields:
 			self.map[(x,y)] = status
 
+
 	# _get_fields
 	# Berechnet alle Felder, die den den Status 'status' haben.
 	# Ist 'status' nicht gesetzt (default), werden alle Felder zurück
 	# gegeben, zu denen *kein* Status bekannt ist.
 	def _get_fields(self, status=None):
-		"""Returns a list of positions with 'status' (default: unknown status)"""
+		"""Returns fields with 'status' (default: unknown status)"""
 
-		list = []
+		list = set()
 		if status == None:
 			for x in range(len(X_SET)):
 				for y in range(len(Y_SET)):
-					if (x,y) not in self.map: list.append((x,y))
+					if (x,y) not in self.map: list.add((x,y))
 			return list
 
 		for k,s in self.map.items():
-			if status == s: list.append(k)
+			if status == s: list.add(k)
 		return list
 
 
 	# nachbarn
 	# Returns list of neighbour fields koordinates
 	#
-	def nachbarn(self, koor_list, feld=None, include=False, recursive=False):
+	def nachbarn(self, fields, feld=None, include=False, recursive=False):
 		"""Returns all neighbour fields of the given field list."""
-#		assert isinstance(koor_list, [set,list]), \
-#			"'koor_list' must be a list of coordinates"
+		assert isinstance(fields, set), "'fields' must be set of coordinates"
 
 		# koor_last holds last neighbour set,
 		# needed for recursive final condition
-		koor_last = set(koor_list)
+		koor_last = fields
 
 		result_set = set()
-		for koor in koor_list:
+		for koor in fields:
 			(x, y) = koor
 			pot_x = (x,)
 			pot_y = (y,)
@@ -139,20 +139,18 @@ class Karte(object):
 					if feld == None or feld == status:
 						result_set.add( (xi,yi) )
 
-			#FIXME: 'recursiv' not implemented
 			# recursive: final condition: neighbour set has not changed
 			if recursive and len(result_set - koor_last) > 0:
 				#FIXME: make a set
-				result_set = set(self.nachbarn(
+				result_set = self.nachbarn(
 					result_set, feld, recursive=True, include=True
-				))
+				)
 		# delete original coordinates if 'include' is not set
 		if not include:
-			for koor in koor_list:
+			for koor in fields:
 				if koor in result_set: result_set.remove(koor)
 
-		#FIXME: make a set
-		return list(result_set)
+		return result_set
 
 
 	def regions(self, size, feld=None):
@@ -250,7 +248,7 @@ class Karte(object):
 
 		# place water around all ship fields
 		self._set_fields(
-			self.nachbarn(region[first:first+size]),
+			self.nachbarn(set(region[first:first+size])),
 			LEGENDE['water'])
 
 		return region[first:first+size]
@@ -258,7 +256,7 @@ class Karte(object):
 
 	## Funktion zum Markieren
 	def mark_sunken_ship(self, ship):
-		self._set_fields(self.nachbarn(ship), LEGENDE['water'])
+		self._set_fields(self.nachbarn(set(ship)), LEGENDE['water'])
 
 
 	## Funktionen zum Auswählen eines Ziels
@@ -267,11 +265,11 @@ class Karte(object):
 		return RAND.choice( self._get_fields() )
 
 	def search_ship(self, ship):
-		return RAND.choice(self.nachbarn(ship))
+		return RAND.choice(self.nachbarn(set(ship)))
 
 	def destroy_ship(self, ship):
-		known_ship = self.nachbarn(ship)
-		if len(known_ship) == 1: return RAND.choice(self.nachbarn(ship))
+		known_ship = self.nachbarn(set(ship))
+		if len(known_ship) == 1: return RAND.choice(self.nachbarn(set(ship)))
 
 		# Lage des Schiffes:
 		# eine Achse ist fest, die andere variiert: finde die feste Achse,
@@ -418,12 +416,12 @@ if __name__ == '__main__':
 				bomb_map.set(koor, 'hit')
 
 				# check for sunken ship
-				ship = set(ship_map.nachbarn( [koor],
+				ship = ship_map.nachbarn({koor},
 					feld=LEGENDE['ship'], include=True, recursive=True
-				))
-				hits = set(bomb_map.nachbarn( [koor],
+				)
+				hits = bomb_map.nachbarn({koor},
 					feld=LEGENDE['hit'], include=True, recursive=True
-				))
+				)
 				if len(ship-hits) < 1:
 					print( "-- VERSENKT!")
 					bomb_map._set_fields(ship, LEGENDE['sunk'])
