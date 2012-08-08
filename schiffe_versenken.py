@@ -107,7 +107,14 @@ class Karte(object):
 	# Returns list of neighbour fields koordinates
 	#
 	def nachbarn(self, fields, feld=None, include=False, recursive=False):
-		"""Returns all neighbour fields of the given field list."""
+		"""
+		Returns all neighbour fields of the given field list.
+		If 'feld' is not None, only fields which status is 'feld' will be
+		returned.
+		If 'include' is True, fields will be included into the result.
+		If 'recursive' is True, nachbarn() will be called recursivly onto
+		the result until all reachable fields are found.
+		"""
 		assert isinstance(fields, set), "'fields' must be set of coordinates"
 
 		# koor_last holds last neighbour set,
