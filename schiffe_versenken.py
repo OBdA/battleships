@@ -346,18 +346,21 @@ class Karte(object):
 
 ## classmethods
 
-def calc_points(region):
-	"""Returns dictionary of koordinates with values."""
+def calc_points(region, rate=1):
+	"""
+	Returns <target map> of the given region.
+	Parameter 'rate' gives the base rate (default: 1).
+	"""
 
 	values = {}
 	n = len(region)
 	for i in range(n//2):
-		val = 2*(i+1)
+		val = rate*(i+1)
 		values[region[i]] = val
 		values[region[-(i+1)]] = val
 	if n%2 != 0:
 		i = n//2
-		values[region[i]] = 2*(i+1)
+		values[region[i]] = rate*(i+1)
 
 	return values
 
