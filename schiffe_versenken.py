@@ -276,10 +276,11 @@ class Karte(object):
 		return RAND.choice( self._get_fields() )
 
 
-#WORKING
+	#FIXME: rename to rate_destroy_ship()
 	def destroy_ship(self, ship):
-		known_ship = self.nachbarn(set(ship))
-		if len(known_ship) == 1: return RAND.choice(self.nachbarn(set(ship)))
+		#FIXME: enable code if nachbarn use <status> to check fields
+		#known_ship = self.nachbarn(set(ship), status='hit')
+		#if len(known_ship) == 1: return RAND.choice(self.nachbarn(set(ship)))
 
 		# Lage des Schiffes:
 		# eine Achse ist fest, die andere variiert: finde die feste Achse,
@@ -288,15 +289,15 @@ class Karte(object):
 		x_set = set()
 		y_set = set()
 		for koord in ship:
-			(x,y) = koord
-			x_set.add(x)
-			y_set.add(y)
+			# all ship coordinates are possible
+			x_set.add(koor[0])
+			y_set.add(koor[1])
 
-		print("x-set:",x_set,"y-set",y_set)
+		# check that ship coordinates really is a <region>
 		assert len(x_set)+len(y_set) == len(ship)+1, "ship fields not in a row"
 		assert len(y_set) == 1 or len(x_set) == 1, "ship fields not in a row"
 
-		target_list=set()
+		target_list = set()
 		if len(x_set) == 1:
 			i_var = list(y_set)
 			i_var.sort()
@@ -312,7 +313,6 @@ class Karte(object):
 			if i_var[-1] < len(X_SET)-1:
 				target_list.add((i_var[-1]+1,list(y_set)[0]))
 			
-		print('target-list:',target_list)
 		return target_list
 
 
