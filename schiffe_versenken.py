@@ -15,6 +15,7 @@ RAND = random.Random()
 # <regions>	list of <region>	Liste von Regionen
 # <status>	{STATUS_SET}		Status eines Feldes, {'none','water','hit',...}
 #
+# shipdef	is a dict()			keys: name, size, num
 # ship		is a <region>
 # ships		is a <regions>: a list of <region>
 
@@ -153,8 +154,9 @@ class Karte(object):
 		return result_set
 
 
-	def regions(self, size, feld=None):
-		"""Returns a list of regions of a minimal size with fields status (default :None)."""
+	def regions(self, size=1, feld=None):
+		"""Returns a list of regions of a minimal size with fields status
+		(default :None)."""
 		assert size >  0, "size must be > 0"
 		assert size <= max(len(X_SET), len(Y_SET)), \
 			"size must not be greater then Y_SET and X_SET"
@@ -231,11 +233,11 @@ class Karte(object):
 			print()
 
 
-	def place_ship(self, ship):
+	def place_ship(self, shipdef):
 		"""Returns a random ship position."""
-#		assert isinstance(ship, dict), "'ship' must be of type 'dict'"
+		assert isinstance(shipdef, dict), "'shipdef' must be of type 'dict'"
 
-		(what, size) = ship['name'], ship['size']
+		(what, size) = shipdef['name'], shipdef['size']
 		# chose a free region with minimum size of the ship
 		region = RAND.choice(self.regions(size))
 		if len(region) == 0: return None
@@ -255,18 +257,19 @@ class Karte(object):
 
 
 	## Funktion zum Markieren
+	#FIXME: method Player
 	def mark_sunken_ship(self, ship):
 		self._set_fields(self.nachbarn(set(ship)), LEGENDE['water'])
 
 
 	## Funktionen zum Auswählen eines Ziels
+	#FIXME: classmethod Player
 	def shot_random(self):
 		"""Find a random coordinate to bomb onto."""
 		return RAND.choice( self._get_fields() )
 
-	def search_ship(self, ship):
-		return RAND.choice(self.nachbarn(set(ship)))
 
+#WORKING
 	def destroy_ship(self, ship):
 		known_ship = self.nachbarn(set(ship))
 		if len(known_ship) == 1: return RAND.choice(self.nachbarn(set(ship)))
