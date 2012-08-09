@@ -55,7 +55,9 @@ class Karte(object):
 
 
 	def get(self, koor):
-		"""Returns status of a field."""
+		"""
+		Returns status of a field.
+		"""
 		assert isinstance(koor,tuple),	"request tuple for coordinates"
 		assert len(koor) == 2,			"need two coordinates"
 
@@ -63,7 +65,9 @@ class Karte(object):
 
 
 	def set(self, koor, status):
-		"""Set status of a field."""
+		"""
+		Set status of a field.
+		"""
 		assert isinstance(koor,tuple),	"request tuple for coordinates"
 		assert len(koor) == 2,			"need two coordinates"
 		assert status in STATUS_SET,	"status must be STATUS_SET element"
@@ -80,17 +84,22 @@ class Karte(object):
 		assert isinstance(fields, (set,list,tuple)), \
 			"'fields' must be a list or tuple of coordinates eg. '[(1,4)]'"
 
-		#print("FIELDS:",fields)
 		for (x,y) in fields:
 			self.map[(x,y)] = status
+		return
 
 
-	# _get_fields
-	# Berechnet alle Felder, die den den Status 'status' haben.
-	# Ist 'status' nicht gesetzt (default), werden alle Felder zurück
-	# gegeben, zu denen *kein* Status bekannt ist.
 	def _get_fields(self, status=None):
-		"""Returns fields with 'status' (default: unknown status)"""
+		"""
+		Berechnet alle Felder, die den den Status 'status' haben.
+		Ist 'status' nicht gesetzt (default), werden alle Felder zurück
+		gegeben, zu denen *kein* Status bekannt ist.
+
+		Returns fields with 'status' (default: unknown status)
+		"""
+
+		# set 'status' to None if 'none' is given
+		if status == 'none': status = None
 
 		list = set()
 		if status == None:
@@ -104,9 +113,6 @@ class Karte(object):
 		return list
 
 
-	# nachbarn
-	# Returns list of neighbour fields koordinates
-	#
 	def nachbarn(self, fields, status=None, include=False, recursive=False):
 		"""
 		Returns all neighbour fields of the given field list.
@@ -117,6 +123,9 @@ class Karte(object):
 		the result until all reachable fields are found.
 		"""
 		assert isinstance(fields, set), "'fields' must be set of coordinates"
+
+		# set 'status' to None if 'none' is given
+		if status == 'none': status = None
 
 		# koor_last holds last neighbour set,
 		# needed for recursive final condition
@@ -153,6 +162,7 @@ class Karte(object):
 				result_set = self.nachbarn(
 					result_set, status, recursive=True, include=True
 				)
+
 		# delete original coordinates if 'include' is not set
 		if not include:
 			for koor in fields:
@@ -162,14 +172,16 @@ class Karte(object):
 
 
 	def regions(self, size=1, status=None):
-		"""Returns a list of regions of a minimal size with fields status
-		(default :None)."""
+		"""
+		Returns a list of regions of a minimal size with fields status
+		(default :None).
+		"""
 		assert size >  0, "size must be > 0"
 		assert size <= max(len(X_SET), len(Y_SET)), \
 			"size must not be greater then Y_SET and X_SET"
 
 		positions = []
-		# vertical regions
+		# get all vertical regions
 		for x in range(len(X_SET)):
 			pos = []
 			for y in range(len(Y_SET)):
@@ -221,7 +233,7 @@ class Karte(object):
 
 
 	def print(self):
-		# Drucke die Koordinaten A..J
+		# print coodinates from X_SET (A..Z)
 		print( "    ", end="" )
 		for x in range(len(X_SET)):
 			print( X_SET[x], end=" ")

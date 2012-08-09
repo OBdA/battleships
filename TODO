@@ -13,10 +13,10 @@
 	  ok find_ship() --> rate_unknown_fields() -> <target map>
 	  ok destroy_ship() --> rate_destroy_ship() -> <target map>
 	  ok rate_ship_position() -> <target map>
-	+ parameter rate für Bewertungsfunktionen (-> ,schiffe_versenken.py)
-	+ anzahl in der SCHIFFE-Liste als {'num':3}
-	+ <status> in allen funktionen durchsetzen 'x'->'hit', 'o'->'water, ...
-	+ cleanup comments
+	ok parameter rate für Bewertungsfunktionen (-> ,schiffe_versenken.py)
+	ok anzahl in der SCHIFFE-Liste als {'num':3}
+	ok <status> in allen funktionen durchsetzen 'x'->'hit', 'o'->'water, ...
+	ok cleanup comments
 	+ class Player: Funktionen aus Karte() übertragen
 	+ class Karte in class Map umbenennen
 	+ mark_hit_ship(): #FIXME: calculate diagonal fields
