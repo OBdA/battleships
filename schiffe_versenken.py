@@ -263,7 +263,22 @@ class Karte(object):
 
 
 	## Funktion zum Markieren
-	#FIXME: method Player
+
+	#FIXME: method Player: fix <anything>
+	def mark_hit_ship(self, field):
+		"""
+		Markiert die Felder diagonal, da hier kein Schiff liegen darf.
+		"""
+		assert isinstance(field, tuple), "field must be a tuple"
+		assert field[0] in range(len(X_SET)) and field[1] in range(len(Y_SET)),\
+			"field must be element of (X_SET, Y_SET)"
+
+		fields = set()
+		#FIXME: calculate diagonal fields
+		self._set_fields(self.nachbarn(fields)), LEGENDE['water'])
+
+
+	#FIXME: method Player: fix 'self.nachbarn(set(ship))'
 	def mark_sunken_ship(self, ship):
 		self._set_fields(self.nachbarn(set(ship)), LEGENDE['water'])
 
