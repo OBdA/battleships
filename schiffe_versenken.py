@@ -71,6 +71,7 @@ class Karte(object):
 
 		#FIXME: use <status> in map directly
 		self.map[koor] = LEGENDE[status]
+		return
 
 
 	# Setze die Liste der Felder auf 'status'
@@ -276,6 +277,8 @@ class Karte(object):
 		fields = set()
 		#FIXME: calculate diagonal fields
 		self._set_fields(self.nachbarn(fields)), LEGENDE['water'])
+		return
+
 
 
 	#FIXME: method Player: fix 'self.nachbarn(set(ship))'
