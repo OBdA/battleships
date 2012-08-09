@@ -54,13 +54,12 @@ class Karte(object):
 			self.map = dict
 
 
-	#FIXME: rename get(self, koor) -> <status>
 	def get(self, koor):
 		"""Returns status of a field."""
 		assert isinstance(koor,tuple),	"request tuple for coordinates"
 		assert len(koor) == 2,			"need two coordinates"
 
-		return self.map.get(koor, LEGENDE['none'])
+		return self.map.get(koor, 'none')
 
 
 	def set(self, koor, status):
@@ -69,8 +68,7 @@ class Karte(object):
 		assert len(koor) == 2,			"need two coordinates"
 		assert status in STATUS_SET,	"status must be STATUS_SET element"
 
-		#FIXME: use <status> in map directly
-		self.map[koor] = LEGENDE[status]
+		self.map[koor] = status
 		return
 
 
@@ -231,14 +229,13 @@ class Karte(object):
 		print( "  +", len(X_SET) * '--', sep="")
 
 		for y in range(len(Y_SET)):
-			print( "{0:2}| ".format(Y_SET[y]), end="")
+			print( "{0:2}|".format(Y_SET[y]), end="")
 			for x in range(len(X_SET)):
-				val = self.map.get((x,y), ".")
-				print("{0:2}".format(val), end='')
-#				if isinstance(val, int):
-#					print("{0:2}".format(val), end='')
-#				else:
-#					print("{0:2}".format(val), end='')
+				val = self.map.get((x,y), 'none')
+				if isinstance(val, int):
+					print("{0:>2}".format(val), end='')
+				else:
+					print("{0:>2}".format(LEGENDE[val]), end='')
 			print()
 
 
@@ -255,12 +252,12 @@ class Karte(object):
 		first = RAND.randint(0,len(region)-size)
 
 		# place the ship
-		self._set_fields(region[first:first+size], LEGENDE['ship'])
+		self._set_fields(region[first:first+size], 'ship')
 
 		# place water around all ship fields
 		self._set_fields(
 			self.nachbarn(set(region[first:first+size])),
-			LEGENDE['water'])
+			'water')
 
 		return region[first:first+size]
 
@@ -278,7 +275,7 @@ class Karte(object):
 
 		fields = set()
 		#FIXME: calculate diagonal fields
-		self._set_fields(self.nachbarn(fields), LEGENDE['water'])
+		self._set_fields(self.nachbarn(fields), 'water')
 		return
 
 
@@ -289,7 +286,7 @@ class Karte(object):
 		Schiff liegen darf.
 		"""
 
-		self._set_fields(self.nachbarn(set(region)), LEGENDE['water'])
+		self._set_fields(self.nachbarn(set(region)), 'water')
 		return
 
 
@@ -298,7 +295,7 @@ class Karte(object):
 		"""Bewertet die Felder um ein getroffenes Schiff herum."""
 
 		# FIXME: 'ship' könnten mehrere angeschossene Schiffe enthalten (fields),
-		#        z. B. für fields=_get_fields(LEGENDE['hit'])
+		#        z. B. für fields=_get_fields('hit')
 		#        benutze find_ships() um Liste von Schiffen zu erzeugen.
 		return {k:rate for k in self.nachbarn(fields)}
 
@@ -309,7 +306,7 @@ class Karte(object):
 		Bewertet die Felder zum Zerstören eines getroffenen Schiffes.
 		"""
 		# FIXME: 'fields' könnten mehrere angeschossene Schiffe enthalten,
-		#        z. B. für _get_fields(LEGENDE['hit'])
+		#        z. B. für _get_fields('hit')
 		#        benutze find_ships() um Liste von Schiffen zu erzeugen.
 
 		# Lage des Schiffes:
@@ -524,7 +521,7 @@ if __name__ == '__main__':
 					"einer Zahl ein.\n-- Zum Beispiel: {0}{1}"\
 					.format(RAND.choice(X_SET),RAND.choice(Y_SET)) )
 				continue
-			elif bomb_map.get(koor) != LEGENDE['none']:
+			elif bomb_map.get(koor) != 'none':
 				feld = bomb_map.get(koor)
 				print( "-- Oh, Captain!")
 				print( "-- Im Feld {0} ist doch schon '{1}'".format(
@@ -533,20 +530,20 @@ if __name__ == '__main__':
 				))
 				continue
 
-			if ship_map.get(koor) == LEGENDE['ship']:
+			if ship_map.get(koor) == 'ship':
 				bomb_map.set(koor, 'hit')
 
 				# check for sunken ship
 				ship = ship_map.nachbarn({koor},
-					status=LEGENDE['ship'], include=True, recursive=True
+					status='ship', include=True, recursive=True
 				)
 				hits = bomb_map.nachbarn({koor},
-					status=LEGENDE['hit'], include=True, recursive=True
+					status='hit', include=True, recursive=True
 				)
 				if len(ship-hits) < 1:
 					print( "-- VERSENKT!")
-					bomb_map._set_fields(ship, LEGENDE['sunk'])
-					bomb_map._set_fields(bomb_map.nachbarn(ship), LEGENDE['water'])
+					bomb_map._set_fields(ship, 'sunk')
+					bomb_map._set_fields(bomb_map.nachbarn(ship), 'water')
 					sunk_count += 1
 					bomb_map.mark_sunken_ship(ship)
 
