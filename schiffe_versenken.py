@@ -278,14 +278,19 @@ class Karte(object):
 
 		fields = set()
 		#FIXME: calculate diagonal fields
-		self._set_fields(self.nachbarn(fields)), LEGENDE['water'])
+		self._set_fields(self.nachbarn(fields), LEGENDE['water'])
 		return
 
 
+	#FIXME: method Player: fix all references to Karte
+	def mark_sunken_ship(self, region):
+		"""
+		Markiert alle Nachbarfelder eines Schiffen, da hier kein anderes
+		Schiff liegen darf.
+		"""
 
-	#FIXME: method Player: fix 'self.nachbarn(set(ship))'
-	def mark_sunken_ship(self, ship):
-		self._set_fields(self.nachbarn(set(ship)), LEGENDE['water'])
+		self._set_fields(self.nachbarn(set(region)), LEGENDE['water'])
+		return
 
 
 	#FIXME: method Player: fix all references to Karte
@@ -409,70 +414,71 @@ class Karte(object):
 
 ## classmethods
 
-	def	is_koor(koor):
-		if len(koor) != 2: return False
-		if koor[0] in range(len(X_SET)) and koor[1] in range(len(Y_SET)):
-			return True
+def	is_koor(koor):
+	if len(koor) != 2: return False
+	if koor[0] in range(len(X_SET)) and koor[1] in range(len(Y_SET)):
+		return True
+	return False
+
+
+def is_region(region):
+	"""
+	Test, ob 'region' eine <region> ist.
+	"""
+	assert isinstance(region, list), "region must be a list"
+
+	# Their must be minimum of two fields for a region
+	if len(region) < 2: return False
+	x_set = set()
+	y_set = set()
+	for xy in region:
+		x_set.add(xy[0])
+		y_set.add(xy[1])
+
+	# one coordinate have #region elements, the other has only one element
+	if len(x_set) + len(y_set) != len(region)+1:
 		return False
 
+	# one of the coordinates must have exacly one element
+	if len(x_set) == 1 or len(y_set) == 1:
+		return True
 
-	def is_region(region):
-		"""
-		Test, ob 'region' eine <region> ist.
-		"""
-		assert isinstance(region, list), "region must be a list"
-
-		# Their must be minimum of two fields for a region
-		if len(region) < 2: return False
-		x_set = set()
-		y_set = set()
-		for xy in region:
-			x_set.add(xy[0])
-			y_set.add(xy[1])
-
-		# one coordinate have #region elements, the other has only one element
-		if len(x_set) + len(y_set) != len(region)+1:
-			return False
-
-		# one of the coordinates must have exacly one element
-		if len(x_set) == 1 or len(y_set) == 1:
-			return True
-
-		# this can not be a region
-		return False
+	# this can not be a region
+	return False
 
 
-	def calc_points(region, rate=1):
-		"""
-		Returns <target map> of the given region.
-		Parameter 'rate' gives the base rate (default: 1).
-		"""
+def calc_points(region, rate=1):
+	"""
+	Returns <target map> of the given region.
+	Parameter 'rate' gives the base rate (default: 1).
+	"""
 
-		values = {}
-		n = len(region)
-		for i in range(n//2):
-			val = rate*(i+1)
-			values[region[i]] = val
-			values[region[-(i+1)]] = val
-		if n%2 != 0:
-			i = n//2
-			values[region[i]] = rate*(i+1)
+	values = {}
+	n = len(region)
+	for i in range(n//2):
+		val = rate*(i+1)
+		values[region[i]] = val
+		values[region[-(i+1)]] = val
+	if n%2 != 0:
+		i = n//2
+		values[region[i]] = rate*(i+1)
 
-		return values
+	return values
 
 
-	def xy(string):
-		if len(string) < 2: return None
+def xy(string):
+	if len(string) < 2: return None
 
-		xs = string[0:1].upper()
-		ys = int(string[1:])
-		try:
-			x = X_SET.index(string[0:1].upper())
-			y = Y_SET.index(int(string[1:]))
-		except:
-			return None
+	xs = string[0:1].upper()
+	ys = int(string[1:])
+	try:
+		x = X_SET.index(string[0:1].upper())
+		y = Y_SET.index(int(string[1:]))
+	except:
+		return None
 
-		return (x,y)
+	return (x,y)
+
 
 ##
 ##  MAIN
