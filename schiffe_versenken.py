@@ -316,31 +316,32 @@ class Karte(object):
 
 
 
-	#FIXME: rename to rate_unknown_fields, return complete <target map>
-	#FIXME: add parameter rate=1
-	def find_ship(self, size=1, debug=False):
+	#FIXME: method of class Player: change line 'self.regions(size)'
+	def rate_unknown_fields(self, size=1, rate=1):
 		"""
 		Bewertet unbekannte Felder der Karte und gibt eine <target map> zurück.
-		Der Parameter 'size' gibt dabei die minimale Regiongrösse an
+		Der Parameter 'size' gibt dabei die minimale Regionengrösse an
+		(default: 1).
+		Der Parameter 'rate' gibt die Basis zur Berechung der <target map>
 		(default: 1).
 		"""
 
-		targets = dict()
 		t_map = dict()
 		regions = self.regions(size)
 		for region in regions:
-			val_list = calc_points(region)
+			val_list = calc_points(region, rate)
 			for k,v in val_list.items():
 				t_map[k] = t_map.get(k, 0) + v
 
-		if debug == True: Karte(t_map).print()
+#		if debug == True: Karte(t_map).print()
 		max_val = max(t_map.values())
 
-		targets = {key:val for key,val in t_map.items() if val == max_val}		
-		if debug == True: print("Targets: {0}".\
-			format([X_SET[k[0]]+str(Y_SET[k[1]])  for k in targets.keys()]))
-
-		return targets
+		return t_map
+#		targets = {key:val for key,val in t_map.items() if val == max_val}		
+#		if debug == True: print("Targets: {0}".\
+#			format([X_SET[k[0]]+str(Y_SET[k[1]])  for k in targets.keys()]))
+#
+#		return targets
 
 
 ## classmethods
@@ -412,7 +413,7 @@ if __name__ == '__main__':
 #		elif cmd == 'shot':
 #			bomb_map.set(xy(token.pop(0)), 'water')
 		elif cmd == 'find_ship':
-			bomb_map.find_ship(2, debug=True)
+			Karte(bomb_map.rate_unknown_fields()).print()
 		elif re.match('[a-z]\d+', cmd):
 			koor = xy(cmd)
 			if koor == None:
