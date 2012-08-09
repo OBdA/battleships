@@ -74,7 +74,6 @@ class Karte(object):
 		return
 
 
-	# Setze die Liste der Felder auf 'status'
 	def _set_fields(self, fields, status):
 		"""
 		Setze die Liste der Felder auf iden Feldstatus 'status'.
