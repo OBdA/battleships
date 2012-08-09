@@ -106,10 +106,10 @@ class Karte(object):
 	# nachbarn
 	# Returns list of neighbour fields koordinates
 	#
-	def nachbarn(self, fields, feld=None, include=False, recursive=False):
+	def nachbarn(self, fields, status=None, include=False, recursive=False):
 		"""
 		Returns all neighbour fields of the given field list.
-		If 'feld' is not None, only fields which status is 'feld' will be
+		If 'status' is not None, only fields which status is 'status' will be
 		returned.
 		If 'include' is True, fields will be included into the result.
 		If 'recursive' is True, nachbarn() will be called recursivly onto
@@ -143,15 +143,15 @@ class Karte(object):
 			# add all possible coordinates
 			for xi in pot_x:
 				for yi in pot_y:
-					status = self.get((xi,yi))
-					if feld == None or feld == status:
+					stat = self.get((xi,yi))
+					if status == None or status == stat:
 						result_set.add( (xi,yi) )
 
 			# recursive: final condition: neighbour set has not changed
 			if recursive and len(result_set - koor_last) > 0:
 				#FIXME: make a set
 				result_set = self.nachbarn(
-					result_set, feld, recursive=True, include=True
+					result_set, status, recursive=True, include=True
 				)
 		# delete original coordinates if 'include' is not set
 		if not include:
@@ -161,7 +161,7 @@ class Karte(object):
 		return result_set
 
 
-	def regions(self, size=1, feld=None):
+	def regions(self, size=1, status=None):
 		"""Returns a list of regions of a minimal size with fields status
 		(default :None)."""
 		assert size >  0, "size must be > 0"
@@ -173,7 +173,7 @@ class Karte(object):
 		for x in range(len(X_SET)):
 			pos = []
 			for y in range(len(Y_SET)):
-				if feld == None:
+				if status == None:
 					if (x,y) not in self.map:
 						pos.append((x,y))
 					else:
@@ -184,7 +184,7 @@ class Karte(object):
 						pos = []
 
 				else:
-					if feld == self.get((x,y)):
+					if status == self.get((x,y)):
 						pos.append((x,y))
 					else:
 						if len(pos) >= size:
@@ -197,7 +197,7 @@ class Karte(object):
 		for y in range(len(Y_SET)):
 			pos = []
 			for x in range(len(X_SET)):
-				if feld == None:
+				if status == None:
 					if (x,y) not in self.map:
 						pos.append((x,y))
 					else:
@@ -208,7 +208,7 @@ class Karte(object):
 						pos = []
 
 				else:
-					if feld == self.get((x,y)):
+					if status == self.get((x,y)):
 						pos.append((x,y))
 					else:
 						if len(pos) >= size:
@@ -435,10 +435,10 @@ if __name__ == '__main__':
 
 				# check for sunken ship
 				ship = ship_map.nachbarn({koor},
-					feld=LEGENDE['ship'], include=True, recursive=True
+					status=LEGENDE['ship'], include=True, recursive=True
 				)
 				hits = bomb_map.nachbarn({koor},
-					feld=LEGENDE['hit'], include=True, recursive=True
+					status=LEGENDE['hit'], include=True, recursive=True
 				)
 				if len(ship-hits) < 1:
 					print( "-- VERSENKT!")
