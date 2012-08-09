@@ -283,11 +283,14 @@ class Karte(object):
 		self._set_fields(self.nachbarn(set(ship)), LEGENDE['water'])
 
 
-	## Funktionen zum Auswählen eines Ziels
-	#FIXME: classmethod Player
-	def shot_random(self):
-		"""Find a random coordinate to bomb onto."""
-		return RAND.choice( self._get_fields() )
+	#FIXME: method Player: fix 'self.nachbarn(fields)'
+	def rate_ship_position(self, ship, rate=max(len(X_SET), len(Y_SET))/2 ):
+		"""Bewertet die Felder um ein getroffenes Schiff herum."""
+
+		# FIXME: 'ship' könnten mehrere angeschossene Schiffe enthalten,
+		#        z. B. für fields=_get_fields(LEGENDE['hit'])
+		#        benutze find_ships() um Liste von Schiffen zu erzeugen.
+		return {k:rate for k in self.nachbarn(fields)}
 
 
 	#FIXME: rename to rate_destroy_ship()
