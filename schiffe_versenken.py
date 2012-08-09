@@ -149,7 +149,6 @@ class Karte(object):
 
 			# recursive: final condition: neighbour set has not changed
 			if recursive and len(result_set - koor_last) > 0:
-				#FIXME: make a set
 				result_set = self.nachbarn(
 					result_set, status, recursive=True, include=True
 				)
