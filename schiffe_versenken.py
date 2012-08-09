@@ -76,7 +76,10 @@ class Karte(object):
 
 	# Setze die Liste der Felder auf 'status'
 	def _set_fields(self, fields, status):
-		"""Set a list of fields to given status"""
+		"""
+		Setze die Liste der Felder auf iden Feldstatus 'status'.
+		Set a list of fields to given status
+		"""
 		assert isinstance(fields, (set,list,tuple)), \
 			"'fields' must be a list or tuple of coordinates eg. '[(1,4)]'"
 
@@ -286,11 +289,11 @@ class Karte(object):
 		self._set_fields(self.nachbarn(set(ship)), LEGENDE['water'])
 
 
-	#FIXME: method Player: fix 'self.nachbarn(fields)'
+	#FIXME: method Player: fix all references to Karte
 	def rate_ship_position(self, ship, rate=max(len(X_SET), len(Y_SET))/2 ):
 		"""Bewertet die Felder um ein getroffenes Schiff herum."""
 
-		# FIXME: 'ship' könnten mehrere angeschossene Schiffe enthalten,
+		# FIXME: 'ship' könnten mehrere angeschossene Schiffe enthalten (fields),
 		#        z. B. für fields=_get_fields(LEGENDE['hit'])
 		#        benutze find_ships() um Liste von Schiffen zu erzeugen.
 		return {k:rate for k in self.nachbarn(fields)}
