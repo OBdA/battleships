@@ -9,14 +9,17 @@
 	ok parameter/namen vereinheitlichen
 	ok nachbarn(): rename parameter 'feld' to 'status'
 	ok regions(): rename parameter 'feld' to 'status'
-	+ umbenennen der funktionen find_*() in rate_*()
-	  - find_ship() --> rate_unknown_fields() -> <target map>
+	ok umbenennen der funktionen find_*() in rate_*()
+	  ok find_ship() --> rate_unknown_fields() -> <target map>
+	  ok destroy_ship() --> rate_destroy_ship() -> <target map>
+	  ok rate_ship_position() -> <target map>
 	+ parameter rate für Bewertungsfunktionen (-> ,schiffe_versenken.py)
 	+ anzahl in der SCHIFFE-Liste als {'num':3}
 	+ <status> in allen funktionen durchsetzen 'x'->'hit', 'o'->'water, ...
 	+ cleanup comments
 	+ class Player: Funktionen aus Karte() übertragen
 	+ class Karte in class Map umbenennen
+	+ mark_hit_ship(): #FIXME: calculate diagonal fields
 
 
 --	Algorithmen (changeing interfaces)
