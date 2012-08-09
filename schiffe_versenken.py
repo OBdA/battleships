@@ -39,11 +39,11 @@ STATUS_SET = set(LEGENDE.keys())
 
 
 SCHIFFE = [
-	# <count>, <ship>
-	[1,	{'name': 'Schlachtschiff',	'size': 5}],
-	[2,	{'name': 'Kreuzer',			'size': 4}],
-	[3,	{'name': 'Zerstörer',		'size': 3}],
-	[4,	{'name': 'U-Boot',			'size': 2}]
+	# valid keys: 'num', 'size', 'name'
+	{'num': 1, 'size': 5, 'name': 'Schlachtschiff'},
+	{'num': 2, 'size': 4, 'name': 'Kreuzer'},
+	{'num': 3, 'size': 3, 'name': 'Zerstörer'},
+	{'num': 4, 'size': 2, 'name': 'U-Boot'}
 ]
 
 class Karte(object):
@@ -493,7 +493,8 @@ if __name__ == '__main__':
 
 	# Set computer ships
 	ship_map = Karte()
-	for num,ship in SCHIFFE:
+	for ship in SCHIFFE:
+		num = ship['num']
 		for n in range(num):
 			ship_map.place_ship(ship)
 			ship_count += 1
