@@ -76,7 +76,7 @@ class Karte(object):
 		return
 
 
-	def _set_fields(self, fields, status):
+	def set_fields(self, fields, status):
 		"""
 		Setze die Liste der Felder auf iden Feldstatus 'status'.
 		Set a list of fields to given status
@@ -89,7 +89,7 @@ class Karte(object):
 		return
 
 
-	def _get_fields(self, status=None):
+	def get_fields(self, status=None):
 		"""
 		Berechnet alle Felder, die den den Status 'status' haben.
 		Ist 'status' nicht gesetzt (default), werden alle Felder zurück
@@ -264,10 +264,10 @@ class Karte(object):
 		first = RAND.randint(0,len(region)-size)
 
 		# place the ship
-		self._set_fields(region[first:first+size], 'ship')
+		self.set_fields(region[first:first+size], 'ship')
 
 		# place water around all ship fields
-		self._set_fields(
+		self.set_fields(
 			self.nachbarn(set(region[first:first+size])),
 			'water')
 
@@ -287,7 +287,7 @@ class Karte(object):
 
 		fields = set()
 		#FIXME: calculate diagonal fields
-		self._set_fields(self.nachbarn(fields), 'water')
+		self.set_fields(self.nachbarn(fields), 'water')
 		return
 
 
@@ -298,7 +298,7 @@ class Karte(object):
 		Schiff liegen darf.
 		"""
 
-		self._set_fields(self.nachbarn(set(region)), 'water')
+		self.set_fields(self.nachbarn(set(region)), 'water')
 		return
 
 
@@ -307,7 +307,7 @@ class Karte(object):
 		"""Bewertet die Felder um ein getroffenes Schiff herum."""
 
 		# FIXME: 'ship' könnten mehrere angeschossene Schiffe enthalten (fields),
-		#        z. B. für fields=_get_fields('hit')
+		#        z. B. für fields=get_fields('hit')
 		#        benutze find_ships() um Liste von Schiffen zu erzeugen.
 		return {k:rate for k in self.nachbarn(fields)}
 
@@ -318,7 +318,7 @@ class Karte(object):
 		Bewertet die Felder zum Zerstören eines getroffenen Schiffes.
 		"""
 		# FIXME: 'fields' könnten mehrere angeschossene Schiffe enthalten,
-		#        z. B. für _get_fields('hit')
+		#        z. B. für get_fields('hit')
 		#        benutze find_ships() um Liste von Schiffen zu erzeugen.
 
 		# Lage des Schiffes:
@@ -554,8 +554,8 @@ if __name__ == '__main__':
 				)
 				if len(ship-hits) < 1:
 					print( "-- VERSENKT!")
-					bomb_map._set_fields(ship, 'sunk')
-					bomb_map._set_fields(bomb_map.nachbarn(ship), 'water')
+					bomb_map.set_fields(ship, 'sunk')
+					bomb_map.set_fields(bomb_map.nachbarn(ship), 'water')
 					sunk_count += 1
 					bomb_map.mark_sunken_ship(ship)
 
