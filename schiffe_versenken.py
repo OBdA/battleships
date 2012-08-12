@@ -1,6 +1,8 @@
 #! /usr/bin/python3
 
 import random
+import copy
+
 
 # Zufallsgenerator
 RAND = random.Random()
@@ -14,6 +16,7 @@ RAND = random.Random()
 # <region>	list of <koor>		Liste von zusammenhängenden Koordinaten
 # <regions>	list of <region>	Liste von Regionen
 # <status>	{STATUS_SET}		Status eines Feldes, {'none','water','hit',...}
+# <result>	tuple()				Resultat: Tupel mit (Koordinate und Status)
 #
 # shipdef	is a dict()			keys: name, size, num
 # ship		is a <region>
@@ -27,7 +30,7 @@ RAND = random.Random()
 X_SET = tuple('ABCDEFGHIJ')
 Y_SET = tuple( range(1, 11))
 
-# Mögliche Inhalte eines Kartenfeldes
+# Mögliche Inhalte eines Mapnfeldes
 LEGENDE = {
 	'none': 	'.',
 	'water':	'o',
@@ -46,7 +49,404 @@ SCHIFFE = [
 	{'num': 4, 'size': 2, 'name': 'U-Boot'}
 ]
 
-class Karte(object):
+
+class Player(object):
+
+	def __init__(self, ki=False, level=50):
+
+		# interaktive or computer player
+		self.human		= not ki
+		self.ki_level	= level
+
+		# Count all my ships
+		self.ship_count	= 0
+		self.foeships	= []
+
+		# The maps for my own ships and the hits
+		self.ships	= Map()
+		self.hits	= Map()
+
+		# memory for the last turn's result
+		self.last_result = None
+
+
+		## public methods
+
+		## bomb
+		## is_all_sunk
+		## place_ship
+		## turn
+		## send_message
+
+	def _ki_best_moves(self):
+		"""
+		Calculate the best move and return the coordinate.
+		"""
+
+		# Level (0-100), set to maximum if human request a good move
+		level = self.ki_level
+		if self.human: level = 100
+
+		## mark some fields from the last turn
+
+		# FIXME: mark_hit_ship 20%
+
+		# FIXME: mark_sunken_ship 70%
+
+		## calculate the rate map
+
+		rate_map = None
+
+		# rate unknown fields: 50%
+		if RAND.randint(0,100) <= level + 50:
+			# what is the maximum ship size?
+			maximum = max( [shipdef['size'] for shipdef in self.foeships if shipdef['num'] > 0] )
+			rate_map = self._ki_rate_unknown_fields(size=maximum)
+
+		# FIXME: rate ship position of hit ship: 50%
+
+		# FIXME: rate fields to destroy a ship: 50%
+
+		# fall-back
+		if rate_map == None:
+			rate_map = {koor:1 for koor in map.get_fields('none')}
+
+		return rate_map
+
+
+	def cleanup_ships_map(self):
+		"""
+		Cleanup the ships map of all the water fields.
+		"""
+		map = self.ships
+		map.set_fields(map.get_fields('water'), 'none')
+
+		
+	def foe_has_ships(self, shipdef):
+		self.foeships = copy.deepcopy(shipdef)
+
+
+	def turn(self):
+		"""
+		Play one turn and return a koordninate to bomb the foe's ships.
+		Returns None when when player resigns or has no possible turn left.
+		"""
+		if self.human:
+			if self.last_result:
+				lkoor,lstat = self.last_result
+				if lstat == 'sunk':
+					self.hits.set_fields(
+						self.hits.nachbarn({lkoor}, 'sunk', include=True, recursive=True),
+						'water'
+					)
+				elif lstat == 'hit':
+					self.hits.set_fields(
+						self.hits.nachbarn({lkoor}, filter='odd'), 'water'
+					)
+
+
+			bomb_map = self.hits
+			ship_map = self.ships
+
+			koor = None		# is a tuple()
+			while True:
+				line = input( "\nCaptain> " )
+				token = line.rstrip("\n").split()
+				token.append('')	# empty lines fail to pop()
+				cmd = token.pop(0).lower()
+				if re.match('^(resign|aufgeben|quit|exit|ende|stop)', cmd):
+					break
+				if cmd == '':
+					bomb_map.print()
+				elif cmd == 'ships':
+					ship_map.print()
+				elif cmd == 'strategie':
+					t_map = self._ki_best_moves()
+					Map(t_map).print()
+				elif cmd == 'tipp':
+					t_map = self._ki_best_moves()
+#					Map(t_map).print()
+					best_rate = max(t_map.values())
+					best_moves= [k for k,v in t_map.items() if v == best_rate]
+					print('Mmmm..vieleicht auf {}'.format(as_xy(RAND.choice(best_moves))))
+				elif re.match('[a-z]\d+', cmd):
+					koor = as_koor(cmd)
+					if koor == None:
+						print( "-- Gib ein Feld bitte mit einem Buchstaben und " \
+							"einer Zahl ein.\n-- Zum Beispiel: {0}{1}"\
+							.format(RAND.choice(X_SET),RAND.choice(Y_SET)) )
+						continue
+					elif bomb_map.get(koor) != 'none':
+						feld = bomb_map.get(koor)
+						print( "-- Oh, Captain!")
+						print( "-- Im Feld {0} ist doch schon '{1}'".format(
+							X_SET[koor[0]] + str(Y_SET[koor[1]]),
+							feld
+						))
+						continue
+					break
+				else:
+					print( "-- Häh? Versuche es mal mit 'hilfe'.")
+			return koor
+
+		# KI move
+		target_map = self._ki_best_moves()
+		best_rate  = max(target_map.values())
+		best_moves = [xy for xy,val in target_map.items() if val == best_rate]
+
+		return RAND.choice(best_moves)
+
+
+	def send_message(self, msgid, *args):
+		"""
+		Send message to the player (only for interactive mode).
+		"""
+		if not self.human: return 
+
+		if msgid == 'ships_distributed':
+			print("\nCaptain!\nEs wurden {} Schiffe verteilt.".format(args[0]))
+		else:
+			print("\nCaptain!\nUnbekannte Nachricht empfangen:", msgid, '>>', args)
+
+		return	
+
+
+	def is_all_sunk(self):
+		"""
+		Returns True when all own ships are sunk.
+		"""
+		if self.ship_count < 1: return True
+		return False
+
+
+	def handle_result(self, result):
+		"""
+		Behandle alle möglichen Ergebnisse eines Bombardments des Gegeners.
+		"""
+		assert isinstance(result, tuple), "<result> must be an tuple (koor,status)"
+
+		koor,status = result
+		assert is_koor(koor), "no valid <koor> in <result>"
+		assert status in STATUS_SET, "no valid <status> in <result>"
+
+		map = self.hits
+		if status == 'sunk':
+			map.set(koor, status)
+			ship = map.nachbarn( {koor}, {'hit','sunk'}, True, True)
+
+			# mark sunken ship in my map
+			map.set_fields(ship, 'sunk')
+
+			# delete ship from the list of foe's ships
+			name = None
+			for s in self.foeships:
+				if s['size'] == len(ship):
+					s['num'] -= 1
+					name = s['name']
+					break
+			if name == None:
+				raise Exception("Not existing ship sunk", [result,ship,len(ship)])
+
+			self.send_message('you_sank_ship', name, ship)
+
+		elif status == 'hit':
+			map.set(koor, status)
+			
+		elif status == 'water':
+			map.set(koor, status)
+			
+		else:
+			raise Exception("unable to handle result", result)
+
+		self.send_message( 'result_' + status, result )
+		self.last_result = result
+		return
+
+
+	def bomb(self, koor):
+		"""Bomb a field on the ship map and return the result."""
+		assert isinstance(koor, tuple), "Need a tuple as field coordinate."
+
+		map = self.ships
+		result = None
+		status = map.get(koor)
+		if status == 'ship' or status == 'hit':
+			map.set(koor, 'hit')
+
+			# check for sunken ship
+			ship = map.nachbarn(
+				{koor}, status={'ship', 'hit'}, include=True, recursive=True
+			)
+			hits = map.nachbarn(
+				{koor}, status='hit', include=True, recursive=True
+			)
+#			print('SHIP:',ship,'HITS:',hits)
+
+			if len(ship-hits) < 1:
+				map.set_fields(ship, 'sunk')
+				self.ship_count -= 1
+				result =  (koor, 'sunk')
+			else:
+				result =  (koor, 'hit')
+
+		elif status == 'none' or status == 'water':
+			map.set(koor, 'water')
+			result =  (koor, 'water')
+
+		if result == None:
+			raise Exception("sync error in protocol", (koor, status))
+
+		self.send_message('the_foe_hit', result)
+		return result
+
+
+	## private methods
+
+	def _mark(self, koor, status):
+		"""Mark a field on the hits map."""
+		assert isinstance(koor, tuple), "Need a tuple as field coordinate."
+		assert status in STAT_SET, "Need 'status' as element from STAT_SET."
+
+		self.hits[koor] = status
+		return 
+
+
+	def place_ship(self, shipdef):
+		"""
+		Randomly set a ship onto ship map and returns the ship region or
+		None if no space is left.
+		"""
+		assert isinstance(shipdef, dict), "'shipdef' must be of type 'dict'"
+
+		what, size = shipdef['name'], shipdef['size']
+		map = self.ships
+
+		# chose a free region with minimum size of the ship
+		region = RAND.choice(map.regions(size))
+		if len(region) == 0: return None
+
+		# get a starting point for the ship
+		first = RAND.randint(0,len(region)-size)
+
+		# place the ship
+		map.set_fields(region[first:first+size], 'ship')
+
+		# place water around all ship fields
+		map.set_fields(
+			map.nachbarn(set(region[first:first+size])),
+			'water')
+
+		self.ship_count += 1
+		return region[first:first+size]
+
+
+	## Funktion zum Markieren
+
+	def _ki_mark_hit_ship(self, field):
+		"""
+		Markiert die Felder diagonal, da hier kein Schiff liegen darf.
+		"""
+		assert isinstance(field, tuple), "field must be a tuple"
+		assert field[0] in range(len(X_SET)) and field[1] in range(len(Y_SET)),\
+			"field must be element of (X_SET, Y_SET)"
+
+		fields = set()
+		map = self.hits
+		#FIXME: calculate diagonal fields and set to 'water'
+		map.set_fields(map.nachbarn(fields), 'none')
+		return
+
+
+	def _ki_mark_sunken_ship(self, region):
+		"""
+		Markiert alle Nachbarfelder eines Schiffen, da hier kein anderes
+		Schiff liegen darf.
+		"""
+
+		self.hits.set_fields(self.hits.nachbarn(set(region)), 'water')
+		return
+
+
+	def _ki_rate_ship_position(self, ship, rate=max(len(X_SET), len(Y_SET))/2 ):
+		"""
+		Bewertet die Felder um ein getroffenes Schiff herum.
+		"""
+
+		# FIXME: 'ship' könnten mehrere angeschossene Schiffe enthalten (fields),
+		#        z. B. für fields=get_fields('hit')
+		#        benutze find_ships() um Liste von Schiffen zu erzeugen.
+		return {k:rate for k in self.hits.nachbarn(fields)}
+
+
+	def _ki_rate_destroy_ship(self, fields, rate=max(len(X_SET), len(Y_SET))):
+		"""
+		Bewertet die Felder zum Zerstören eines getroffenen Schiffes.
+		"""
+		# FIXME: 'fields' könnten mehrere angeschossene Schiffe enthalten,
+		#        z. B. für get_fields('hit')
+		#        benutze find_ships() um Liste von Schiffen zu erzeugen.
+
+		# Lage des Schiffes:
+		# eine Achse ist fest, die andere variiert: finde die feste Achse,
+		# sortiere die Indizes der variierende Achse um mögliche Koordinaten
+		# zu finden.
+		x_set = set()
+		y_set = set()
+		for koord in fields:
+			x_set.add(koor[0])
+			y_set.add(koor[1])
+
+		assert len(x_set)+len(y_set) == len(fields)+1, "ship fields not in a row"
+		assert len(y_set) == 1 or len(x_set) == 1, "ship fields not in a row"
+
+		target_list=set()
+		if len(x_set) == 1:
+			i_var = list(y_set)
+			i_var.sort()
+			if i_var[0] > 0:
+				target_list.add((list(x_set)[0],i_var[0]-1))
+			if i_var[-1] < len(Y_SET)-1:
+				target_list.add((list(x_set)[0],i_var[-1]+1))
+		else:
+			i_var = list(x_set)
+			i_var.sort()
+			if i_var[0] > 0:
+				target_list.add((i_var[0]-1,list(y_set)[0]))
+			if i_var[-1] < len(X_SET)-1:
+				target_list.add((i_var[-1]+1,list(y_set)[0]))
+
+		return {t:rate for t in target_list}
+
+
+	def _ki_rate_unknown_fields(self, size=1, rate=1):
+		"""
+		Bewertet unbekannte Felder der Map und gibt eine <target map> zurück.
+		Der Parameter 'size' gibt dabei die minimale Regionengrösse an
+		(default: 1).
+		Der Parameter 'rate' gibt die Basis zur Berechung der <target map>
+		(default: 1).
+		"""
+
+		t_map = dict()
+		regions = self.hits.regions(size)
+		for region in regions:
+			val_list = calc_points(region, rate)
+			for k,v in val_list.items():
+				t_map[k] = t_map.get(k, 0) + v
+
+#		if debug == True: Map(t_map).print()
+		max_val = max(t_map.values())
+
+		return t_map
+#		targets = {key:val for key,val in t_map.items() if val == max_val}		
+#		if debug == True: print("Targets: {0}".\
+#			format([X_SET[k[0]]+str(Y_SET[k[1]])  for k in targets.keys()]))
+#
+#		return targets
+
+
+
+class Map(object):
 	def __init__(self, dict=None):
 		if dict == None:
 			self.map = {}
@@ -113,7 +513,7 @@ class Karte(object):
 		return list
 
 
-	def nachbarn(self, fields, status=None, include=False, recursive=False):
+	def nachbarn(self, fields, status=None, include=False, recursive=False, filter=None):
 		"""
 		Returns all neighbour fields of the given field list.
 		If 'status' is not None, only fields which status is 'status' will be
@@ -124,8 +524,13 @@ class Karte(object):
 		"""
 		assert isinstance(fields, set), "'fields' must be set of coordinates"
 
+		# FIXME: implement parameter filter
+		if filter != None: return set()
+
 		# set 'status' to None if 'none' is given
 		if status == 'none': status = None
+		if status != None and not isinstance(status, set):
+			status = {status}
 
 		# koor_last holds last neighbour set,
 		# needed for recursive final condition
@@ -154,7 +559,7 @@ class Karte(object):
 			for xi in pot_x:
 				for yi in pot_y:
 					stat = self.get((xi,yi))
-					if status == None or status == stat:
+					if status == None or stat in status:
 						result_set.add( (xi,yi) )
 
 			# recursive: final condition: neighbour set has not changed
@@ -251,179 +656,9 @@ class Karte(object):
 			print()
 
 
-	def place_ship(self, shipdef):
-		"""Returns a random ship position."""
-		assert isinstance(shipdef, dict), "'shipdef' must be of type 'dict'"
-
-		(what, size) = shipdef['name'], shipdef['size']
-		# chose a free region with minimum size of the ship
-		region = RAND.choice(self.regions(size))
-		if len(region) == 0: return None
-
-		# get a starting point for the ship
-		first = RAND.randint(0,len(region)-size)
-
-		# place the ship
-		self.set_fields(region[first:first+size], 'ship')
-
-		# place water around all ship fields
-		self.set_fields(
-			self.nachbarn(set(region[first:first+size])),
-			'water')
-
-		return region[first:first+size]
-
-
-	## Funktion zum Markieren
-
-	#FIXME: method Player: fix <anything>
-	def mark_hit_ship(self, field):
-		"""
-		Markiert die Felder diagonal, da hier kein Schiff liegen darf.
-		"""
-		assert isinstance(field, tuple), "field must be a tuple"
-		assert field[0] in range(len(X_SET)) and field[1] in range(len(Y_SET)),\
-			"field must be element of (X_SET, Y_SET)"
-
-		fields = set()
-		#FIXME: calculate diagonal fields
-		self.set_fields(self.nachbarn(fields), 'water')
-		return
-
-
-	#FIXME: method Player: fix all references to Karte
-	def mark_sunken_ship(self, region):
-		"""
-		Markiert alle Nachbarfelder eines Schiffen, da hier kein anderes
-		Schiff liegen darf.
-		"""
-
-		self.set_fields(self.nachbarn(set(region)), 'water')
-		return
-
-
-	#FIXME: method Player: fix all references to Karte
-	def rate_ship_position(self, ship, rate=max(len(X_SET), len(Y_SET))/2 ):
-		"""Bewertet die Felder um ein getroffenes Schiff herum."""
-
-		# FIXME: 'ship' könnten mehrere angeschossene Schiffe enthalten (fields),
-		#        z. B. für fields=get_fields('hit')
-		#        benutze find_ships() um Liste von Schiffen zu erzeugen.
-		return {k:rate for k in self.nachbarn(fields)}
-
-
-	#FIXME: method Player: fix all map references or methods to Karte
-	def rate_destroy_ship(self, fields, rate=max(len(X_SET), len(Y_SET))):
-		"""
-		Bewertet die Felder zum Zerstören eines getroffenen Schiffes.
-		"""
-		# FIXME: 'fields' könnten mehrere angeschossene Schiffe enthalten,
-		#        z. B. für get_fields('hit')
-		#        benutze find_ships() um Liste von Schiffen zu erzeugen.
-
-		# Lage des Schiffes:
-		# eine Achse ist fest, die andere variiert: finde die feste Achse,
-		# sortiere die Indizes der variierende Achse um mögliche Koordinaten
-		# zu finden.
-		x_set = set()
-		y_set = set()
-		for koord in fields:
-			x_set.add(koor[0])
-			y_set.add(koor[1])
-
-		assert len(x_set)+len(y_set) == len(fields)+1, "ship fields not in a row"
-		assert len(y_set) == 1 or len(x_set) == 1, "ship fields not in a row"
-
-		target_list=set()
-		if len(x_set) == 1:
-			i_var = list(y_set)
-			i_var.sort()
-			if i_var[0] > 0:
-				target_list.add((list(x_set)[0],i_var[0]-1))
-			if i_var[-1] < len(Y_SET)-1:
-				target_list.add((list(x_set)[0],i_var[-1]+1))
-		else:
-			i_var = list(x_set)
-			i_var.sort()
-			if i_var[0] > 0:
-				target_list.add((i_var[0]-1,list(y_set)[0]))
-			if i_var[-1] < len(X_SET)-1:
-				target_list.add((i_var[-1]+1,list(y_set)[0]))
-
-		return {t:rate for t in target_list}
-
-
-	def destroy_ship(self, ship):
-		#FIXME: enable code if nachbarn use <status> to check fields
-		#known_ship = self.nachbarn(set(ship), status='hit')
-		#if len(known_ship) == 1: return RAND.choice(self.nachbarn(set(ship)))
-
-		# Lage des Schiffes:
-		# eine Achse ist fest, die andere variiert: finde die feste Achse,
-		# sortiere die Indizes der variierende Achse um mögliche Koordinaten
-		# zu finden.
-		x_set = set()
-		y_set = set()
-		for koord in ship:
-			# all ship coordinates are possible
-			x_set.add(koor[0])
-			y_set.add(koor[1])
-
-		# check that ship coordinates really is a <region>
-		assert len(x_set)+len(y_set) == len(ship)+1, "ship fields not in a row"
-		assert len(y_set) == 1 or len(x_set) == 1, "ship fields not in a row"
-
-		target_list = set()
-		if len(x_set) == 1:
-			i_var = list(y_set)
-			i_var.sort()
-			if i_var[0] > 0:
-				target_list.add((list(x_set)[0],i_var[0]-1))
-			if i_var[-1] < len(Y_SET)-1:
-				target_list.add((list(x_set)[0],i_var[-1]+1))
-		else:
-			i_var = list(x_set)
-			i_var.sort()
-			if i_var[0] > 0:
-				target_list.add((i_var[0]-1,list(y_set)[0]))
-			if i_var[-1] < len(X_SET)-1:
-				target_list.add((i_var[-1]+1,list(y_set)[0]))
-			
-		return target_list
-
-
-
-	#FIXME: method of class Player: change line 'self.regions(size)'
-	def rate_unknown_fields(self, size=1, rate=1):
-		"""
-		Bewertet unbekannte Felder der Karte und gibt eine <target map> zurück.
-		Der Parameter 'size' gibt dabei die minimale Regionengrösse an
-		(default: 1).
-		Der Parameter 'rate' gibt die Basis zur Berechung der <target map>
-		(default: 1).
-		"""
-
-		t_map = dict()
-		regions = self.regions(size)
-		for region in regions:
-			val_list = calc_points(region, rate)
-			for k,v in val_list.items():
-				t_map[k] = t_map.get(k, 0) + v
-
-#		if debug == True: Karte(t_map).print()
-		max_val = max(t_map.values())
-
-		return t_map
-#		targets = {key:val for key,val in t_map.items() if val == max_val}		
-#		if debug == True: print("Targets: {0}".\
-#			format([X_SET[k[0]]+str(Y_SET[k[1]])  for k in targets.keys()]))
-#
-#		return targets
-
-
 ## classmethods
 
-def	is_koor(koor):
+def is_koor(koor):
 	if len(koor) != 2: return False
 	if koor[0] in range(len(X_SET)) and koor[1] in range(len(Y_SET)):
 		return True
@@ -475,7 +710,11 @@ def calc_points(region, rate=1):
 	return values
 
 
-def xy(string):
+def as_xy(koor):
+	return X_SET[koor[0]] + str(Y_SET[koor[1]])
+
+
+def as_koor(string):
 	if len(string) < 2: return None
 
 	xs = string[0:1].upper()
@@ -487,6 +726,13 @@ def xy(string):
 		return None
 
 	return (x,y)
+
+
+#def status(char):
+#	"""
+#	Calculates the 'status' from a map character.
+#	"""
+#	return [s for s,c in LEGENDE.items() if c == char][0]
 
 
 ##
@@ -501,82 +747,58 @@ if __name__ == '__main__':
 	sunk_count = 0
 
 	# Set computer ships
-	ship_map = Karte()
+	p1 = Player()
+	p2 = Player(ki=True)
 	for ship in SCHIFFE:
 		num = ship['num']
 		for n in range(num):
-			ship_map.place_ship(ship)
-			ship_count += 1
-	print("\nCaptain!\nEs wurden {0} Schiffe verteilt.".format(ship_count))
+			p1.place_ship(ship)
+			p2.place_ship(ship)
 
-	bomb_map = Karte()
+	p1.cleanup_ships_map()
+	p1.send_message('ships_distributed', p1.ship_count)
+	p2.foe_has_ships(SCHIFFE)
+
+	p2.cleanup_ships_map()
+	p2.send_message('ships_distributed', p2.ship_count)
+	p1.foe_has_ships(SCHIFFE)
+
+	#FIXME: Behandlung der Spieler
+	#		player = set(p1, p2);
+	#		active = player[round % len(player)]
+	#		other  = player - set(active)
+	winner	= None
+	loser	= None
 	while True:
-		line = input( "\nCaptain> " )
-		token = line.rstrip("\n").split()
-		token.append('')	# empty lines fail to pop()
-
-		cmd = token.pop(0).lower()
-		if re.match('^(quit|exit|ende|stop)', cmd):
+		if p1.is_all_sunk():
+			loser	= p1
+			winner	= p2
 			break
-		elif cmd == '':
-			bomb_map.print()
-		elif cmd == 'peek':
-			ship_map.print()
-#		elif cmd == 'shot':
-#			bomb_map.set(xy(token.pop(0)), 'water')
-		elif cmd == 'find_ship':
-			Karte(bomb_map.rate_unknown_fields()).print()
-		elif re.match('[a-z]\d+', cmd):
-			koor = xy(cmd)
-			if koor == None:
-				print( "-- Gib ein Feld bitte mit einem Buchstaben und " \
-					"einer Zahl ein.\n-- Zum Beispiel: {0}{1}"\
-					.format(RAND.choice(X_SET),RAND.choice(Y_SET)) )
-				continue
-			elif bomb_map.get(koor) != 'none':
-				feld = bomb_map.get(koor)
-				print( "-- Oh, Captain!")
-				print( "-- Im Feld {0} ist doch schon '{1}'".format(
-					X_SET[koor[0]] + str(Y_SET[koor[1]]),
-					feld
-				))
-				continue
+		koor = p1.turn()
+		if koor == None:
+			loser	= p1
+			winner	= p2
+			break
 
-			if ship_map.get(koor) == 'ship':
-				bomb_map.set(koor, 'hit')
+		# take turn and handle result
+		p1.handle_result(p2.bomb(koor))
 
-				# check for sunken ship
-				ship = ship_map.nachbarn({koor},
-					status='ship', include=True, recursive=True
-				)
-				hits = bomb_map.nachbarn({koor},
-					status='hit', include=True, recursive=True
-				)
-				if len(ship-hits) < 1:
-					print( "-- VERSENKT!")
-					bomb_map.set_fields(ship, 'sunk')
-					bomb_map.set_fields(bomb_map.nachbarn(ship), 'water')
-					sunk_count += 1
-					bomb_map.mark_sunken_ship(ship)
+		if p2.is_all_sunk():
+			loser	= p2
+			winner	= p1
+			break
+		koor = p2.turn()
+		if koor == None:
+			loser	= p2
+			winner	= p1
+			break
 
-					# check: all ships sunk?
-					if sunk_count >= ship_count:
-						ship_map.print()
-						bomb_map.print()
-						print("\nCaptain!\nHurra, Du hast alle Schiffe gefunden!")
-						exit(0)
-					if ship_count-sunk_count > 1:
-						print("\nCaptain!\nEs fehlen nur noch {0} Schiffe!"\
-						.format(ship_count-sunk_count))
-					else:
-						print("\nCaptain!\nEs fehlt nur noch ein Schiff!")
-				else:
-					print( "-- TREFFER!" )
+		# take turn and handle result
+		p2.handle_result(p1.bomb(koor))
 
-			else:
-				print( "-- Wasser." )
-				bomb_map.set(koor, 'water')
-		else:
-			print( "-- Häh? Versuche es mal mit 'hilfe'.")
+	# END OF GAME
+	winner.send_message('you_win')
+	looser.send_message('you_lost')
+	exit(0)
 
 #EOF
