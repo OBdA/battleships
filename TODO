@@ -19,11 +19,16 @@
 	ok cleanup comments
 	ok class Player: Funktionen aus Karte() übertragen
 	ok class Karte in class Map umbenennen
-	+ mark_hit_ship(): #FIXME: calculate diagonal fields
 	ok nachbarn(): parameter status muss ein set() sein: um gesunkenes Schiff
 	  zu finden müssen felder gefunden werden, die 'hit' oder 'ship' sind!
+	+ mark_hit_ship(): #FIXME: calculate diagonal fields
+	+ surrounf_with(): add filter= for nachbarn()
 
 
+== class Player
+	+ benutzer Map().surround_with() an allen Stellen
+
+	
 --	Algorithmen (changeing interfaces)
 
 	+ bei einem Treffer können die diagonalen Felder ausgeschlossen werden
