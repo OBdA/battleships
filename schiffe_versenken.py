@@ -253,14 +253,15 @@ class Player(object):
 
 		elif status == 'hit':
 			map.set(koor, status)
+			self.send_message( 'result_' + status, result )
 			
 		elif status == 'water':
 			map.set(koor, status)
+			self.send_message( 'result_' + status, result )
 			
 		else:
 			raise Exception("unable to handle result", result)
 
-		self.send_message( 'result_' + status, result )
 		self.last_result = result
 		return
 
