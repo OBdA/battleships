@@ -155,8 +155,10 @@ class Player(object):
 				token.append('')	# empty lines fail to pop()
 				cmd = token.pop(0).lower()
 				if re.match('^(resign|aufgeben|quit|exit|ende|stop)', cmd):
+					exit(0)
+				elif re.match('^(skip)', cmd):
 					break
-				if cmd == '':
+				elif cmd == '':
 					bomb_map.print()
 				elif cmd == 'ships':
 					ship_map.print()
@@ -776,12 +778,11 @@ if __name__ == '__main__':
 			break
 		koor = p1.turn()
 		if koor == None:
-			loser	= p1
-			winner	= p2
-			break
-
-		# take turn and handle result
-		p1.handle_result(p2.bomb(koor))
+			# skip this turn
+			pass
+		else:
+			# take turn and handle result
+			p1.handle_result(p2.bomb(koor))
 
 		if p2.is_all_sunk():
 			loser	= p2
@@ -789,12 +790,11 @@ if __name__ == '__main__':
 			break
 		koor = p2.turn()
 		if koor == None:
-			loser	= p2
-			winner	= p1
-			break
-
-		# take turn and handle result
-		p2.handle_result(p1.bomb(koor))
+			# skip this turn
+			pass
+		else:
+			# take turn and handle result
+			p2.handle_result(p1.bomb(koor))
 
 	# END OF GAME
 	winner.send_message('you_win')
