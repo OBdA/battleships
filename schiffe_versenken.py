@@ -125,7 +125,6 @@ class Player(object):
 	def foe_has_ships(self, shipdef):
 		self.foeships = copy.deepcopy(shipdef)
 
-
 	def turn(self):
 		"""
 		Play one turn and return a koordninate to bomb the foe's ships.
@@ -135,10 +134,8 @@ class Player(object):
 			if self.last_result:
 				lkoor,lstat = self.last_result
 				if lstat == 'sunk':
-					self.hits.set_fields(
-						self.hits.nachbarn({lkoor}, 'sunk', include=True, recursive=True),
-						'water'
-					)
+					self.hits.surround_with(lkoor, 'water')
+
 				elif lstat == 'hit':
 					self.hits.set_fields(
 						self.hits.nachbarn({lkoor}, filter='odd'), 'water'
@@ -638,6 +635,25 @@ class Map(object):
 				positions.append(pos)
 
 		return positions
+
+
+	def surround_with(self, koor, status, what=None):
+		"""
+		Set the surrounding fields of a region. The region is calculated from
+		one fields and all neighbored fields with equal status.
+		"""
+
+		if what == None:
+			what = self.get(koor)
+
+		region = self.nachbarn(
+			{koor}, what, include=True, recursive=True
+		)
+		neigh = self.nachbarn(region)
+		self.set_fields(neigh, 'water')
+
+		#print("region at:",koor, "marked at", neigh, "with", status)
+		return
 
 
 	def print(self):
