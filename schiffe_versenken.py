@@ -208,7 +208,7 @@ class Player(object):
 		if msgid == 'ships_distributed':
 			print("\nCaptain!\nEs wurden {} Schiffe verteilt.".format(args[0]))
 		else:
-			print("\nCaptain!\nUnbekannte Nachricht empfangen:", msgid, '>>', args)
+			print("\nCaptain!\nNachricht:", msgid, '>>', args)
 
 		return	
 
