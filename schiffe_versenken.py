@@ -78,7 +78,7 @@ class Player(object):
 		## turn
 		## send_message
 
-	def _ki_best_moves(self):
+	def _best_moves(self):
 		"""
 		Calculate the best move and return the coordinate.
 		"""
@@ -101,7 +101,7 @@ class Player(object):
 		if RAND.randint(0,100) <= level + 50:
 			# what is the maximum ship size?
 			maximum = max( [shipdef['size'] for shipdef in self.foeships if shipdef['num'] > 0] )
-			rate_map = self._ki_rate_unknown_fields(size=maximum)
+			rate_map = self._rate_unknown_fields(size=maximum)
 
 		# FIXME: rate ship position of hit ship: 50%
 
@@ -160,10 +160,10 @@ class Player(object):
 				elif cmd == 'ships':
 					ship_map.print()
 				elif cmd == 'strategie':
-					t_map = self._ki_best_moves()
+					t_map = self._best_moves()
 					Map(t_map).print()
 				elif cmd == 'tipp':
-					t_map = self._ki_best_moves()
+					t_map = self._best_moves()
 #					Map(t_map).print()
 					best_rate = max(t_map.values())
 					best_moves= [k for k,v in t_map.items() if v == best_rate]
@@ -189,7 +189,7 @@ class Player(object):
 			return koor
 
 		# KI move
-		target_map = self._ki_best_moves()
+		target_map = self._best_moves()
 		best_rate  = max(target_map.values())
 		best_moves = [xy for xy,val in target_map.items() if val == best_rate]
 
@@ -342,7 +342,7 @@ class Player(object):
 
 	## Funktion zum Markieren
 
-	def _ki_mark_hit_ship(self, field):
+	def _mark_hit_ship(self, field):
 		"""
 		Markiert die Felder diagonal, da hier kein Schiff liegen darf.
 		"""
@@ -357,7 +357,7 @@ class Player(object):
 		return
 
 
-	def _ki_mark_sunken_ship(self, region):
+	def _mark_sunken_ship(self, region):
 		"""
 		Markiert alle Nachbarfelder eines Schiffen, da hier kein anderes
 		Schiff liegen darf.
@@ -367,7 +367,7 @@ class Player(object):
 		return
 
 
-	def _ki_rate_ship_position(self, ship, rate=max(len(X_SET), len(Y_SET))/2 ):
+	def _rate_ship_position(self, ship, rate=max(len(X_SET), len(Y_SET))/2 ):
 		"""
 		Bewertet die Felder um ein getroffenes Schiff herum.
 		"""
@@ -378,7 +378,7 @@ class Player(object):
 		return {k:rate for k in self.hits.nachbarn(fields)}
 
 
-	def _ki_rate_destroy_ship(self, fields, rate=max(len(X_SET), len(Y_SET))):
+	def _rate_destroy_ship(self, fields, rate=max(len(X_SET), len(Y_SET))):
 		"""
 		Bewertet die Felder zum Zerstören eines getroffenen Schiffes.
 		"""
@@ -418,7 +418,7 @@ class Player(object):
 		return {t:rate for t in target_list}
 
 
-	def _ki_rate_unknown_fields(self, size=1, rate=1):
+	def _rate_unknown_fields(self, size=1, rate=1):
 		"""
 		Bewertet unbekannte Felder der Map und gibt eine <target map> zurück.
 		Der Parameter 'size' gibt dabei die minimale Regionengrösse an
