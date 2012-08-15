@@ -364,6 +364,7 @@ class Player(object):
 		Schiff liegen darf.
 		"""
 
+		#FIXME: replace with surround_with(), add koor={} first
 		self.hits.set_fields(self.hits.nachbarn(set(region)), 'water')
 		return
 
@@ -435,15 +436,9 @@ class Player(object):
 			for k,v in val_list.items():
 				t_map[k] = t_map.get(k, 0) + v
 
-#		if debug == True: Map(t_map).print()
 		max_val = max(t_map.values())
 
 		return t_map
-#		targets = {key:val for key,val in t_map.items() if val == max_val}		
-#		if debug == True: print("Targets: {0}".\
-#			format([X_SET[k[0]]+str(Y_SET[k[1]])  for k in targets.keys()]))
-#
-#		return targets
 
 
 
