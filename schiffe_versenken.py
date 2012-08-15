@@ -121,7 +121,7 @@ class Player(object):
 		map = self.ships
 		map.set_fields(map.get_fields('water'), 'none')
 
-		
+
 	def foe_has_ships(self, shipdef):
 		self.foeships = copy.deepcopy(shipdef)
 
@@ -200,14 +200,14 @@ class Player(object):
 		"""
 		Send message to the player (only for interactive mode).
 		"""
-		if not self.human: return 
+		if not self.human: return
 
 		if msgid == 'ships_distributed':
 			print("\nCaptain!\nEs wurden {} Schiffe verteilt.".format(args[0]))
 		else:
 			print("\nCaptain!\nNachricht:", msgid, '>>', args)
 
-		return	
+		return
 
 
 	def is_all_sunk(self):
@@ -251,11 +251,11 @@ class Player(object):
 		elif status == 'hit':
 			map.set(koor, status)
 			self.send_message( 'result_' + status, result )
-			
+
 		elif status == 'water':
 			map.set(koor, status)
 			self.send_message( 'result_' + status, result )
-			
+
 		else:
 			raise Exception("unable to handle result", result)
 
@@ -308,7 +308,7 @@ class Player(object):
 		assert status in STAT_SET, "Need 'status' as element from STAT_SET."
 
 		self.hits[koor] = status
-		return 
+		return
 
 
 	def place_ship(self, shipdef):
