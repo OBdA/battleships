@@ -159,6 +159,9 @@ class Player(object):
 				elif cmd == 'strategie':
 					t_map = self._best_moves()
 					Map(t_map).print()
+				elif cmd == 'tmap':
+					t_map = self._rate_unknown_fields(int(token[0]))
+					Map(t_map).print()
 				elif cmd == 'tipp':
 					t_map = self._best_moves()
 #					Map(t_map).print()
