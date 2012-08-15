@@ -31,8 +31,12 @@
 	
 --	Algorithmen (changeing interfaces)
 
+	+ bewertungsfunktion löscht auf einer wasser karte alle regionen mit
+	  len(region)<size und status(field)='hit'.
+	  berechnet erst dann die target map. diese karte wird als basis zur
+	  next-shot berechnung genutzt.
 	+ bei einem Treffer können die diagonalen Felder ausgeschlossen werden
-	+ nachbarn() brauch neue option filter={none,odd,even} für 
+	+ nachbarn() braucht neue option filter={none,odd,even} für
 	  {kein Filter(default), diagonale Felder, rechtwinklige Felder}
 	  --> impliziert recursive=False, da Verhalten nicht definiert
 
