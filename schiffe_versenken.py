@@ -137,10 +137,7 @@ class Player(object):
 					self.hits.surround_with(lkoor, 'water')
 
 				elif lstat == 'hit':
-					self.hits.set_fields(
-						self.hits.nachbarn({lkoor}, filter='odd'), 'water'
-					)
-
+					self._mark_hit_ship(lkoor)
 
 			bomb_map = self.hits
 			ship_map = self.ships
@@ -350,10 +347,11 @@ class Player(object):
 		assert field[0] in range(len(X_SET)) and field[1] in range(len(Y_SET)),\
 			"field must be element of (X_SET, Y_SET)"
 
-		fields = set()
-		map = self.hits
-		#FIXME: calculate diagonal fields and set to 'water'
-		map.set_fields(map.nachbarn(fields), 'none')
+		self.hits.set_fields(
+			self.hits.nachbarn({field}, filter='odd'),
+			'water'
+		)
+
 		return
 
 
