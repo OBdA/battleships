@@ -523,9 +523,10 @@ class Map(object):
 		the result until all reachable fields are found.
 		"""
 		assert isinstance(fields, set), "'fields' must be set of coordinates"
-
-		# FIXME: implement parameter filter
-		if filter != None: return set()
+		assert filter == None or filter != None and len(fields) == 1,\
+			"filter only supported for single fields yet"
+		assert filter == None or filter == 'odd' or filter == 'even',\
+			"filter only supports values: None, odd, even"
 
 		# set 'status' to None if 'none' is given
 		if status == 'none': status = None
@@ -572,6 +573,21 @@ class Map(object):
 		if not include:
 			for koor in fields:
 				if koor in result_set: result_set.remove(koor)
+
+		# apply filter to the target set
+		if filter != None:
+			field = fields.pop()
+			# QSUM is defined as (x + y) % 2
+			#   field is even: QSUM differs
+			#   field is odd:  QSUM does not differ
+			qsum = (field[0] + field[1]) % 2
+			if filter == 'even':
+				qsum = (field[0] + field[1] + 1) % 2
+
+			# delete all coordinates which QSUM differs
+			result_set = set([k for k in result_set
+				if (k[0] + k[1]) % 2 == qsum
+			])
 
 		return result_set
 
