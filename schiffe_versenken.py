@@ -49,6 +49,12 @@ SCHIFFE = [
 	{'num': 4, 'size': 2, 'name': 'U-Boot'}
 ]
 
+LEVEL = {
+	'leicht': 80,
+	'mittel': 50,
+	'schwer': 20
+}
+
 
 class Player(object):
 
@@ -87,29 +93,65 @@ class Player(object):
 		level = self.ki_level
 		if self.human: level = 100
 
+		## we create a map with a rate for each field. the field with the
+		## highest rate will be bombed...
+
+		rate_map = dict()
+
 		## mark some fields from the last turn
+		if self.last_result != None:
+			field, status = self.last_result
 
-		# FIXME: mark_hit_ship 20%
+			# mark_hit_ship (level hard)
+			if status == 'hit' and RAND.randint(0,100) <= level + LEVEL['leicht']:
+				self._mark_hit_ship(field)
+				rmap = self._rate_ship_position(koor)
+				for f in rmap.keys():
+					rate_map[f] = rate_map.get(f,0) + rmap[f]
+				rate_map.update(rmap)
+				print('level:',level,'hit_ship_at:',rmap)
 
-		# FIXME: mark_sunken_ship 70%
+			# mark_sunken_ship (level easy)
+			if status == 'sunk' and RAND.randint(0,100) <= level + LEVEL['leicht']:
+				self.hits.surround_with(field, 'water')
+				print('level:',level,'ship_is_sunk')
 
-		## calculate the rate map
+			# rate unknown fields (level intermediate)
+			if RAND.randint(0,100) <= level + LEVEL['leicht']:
+				# what is the maximum ship size?
+				maximum = max(
+					[shipdef['size'] for shipdef in self.foeships \
+					if shipdef['num'] > 0]
+				)
+				rmap = self._rate_unknown_fields(size=maximum)
+				for f in rmap.keys():
+					rate_map[f] = rate_map.get(f,0) + rmap[f]
+				print('level:',level,'rate_fields_size:',maximum)
 
-		rate_map = None
-
-		# rate unknown fields: 50%
-		if RAND.randint(0,100) <= level + 50:
-			# what is the maximum ship size?
-			maximum = max( [shipdef['size'] for shipdef in self.foeships if shipdef['num'] > 0] )
-			rate_map = self._rate_unknown_fields(size=maximum)
-
-		# FIXME: rate ship position of hit ship: 50%
-
-		# FIXME: rate fields to destroy a ship: 50%
+			# rate best fields to detroy a ship which was hit
+			hits = self.hits.get_fields('hit')
+			if len(hits) > 0 and RAND.randint(0,100) <= level + LEVEL['leicht']:
+				print('level:', level, 'destroy_ship:',hits, end=' ')
+				field = hits.pop()
+				fields = self.hits.nachbarn(
+					# the ship we hit
+					self.hits.nachbarn(
+						{field},
+						status='hit',
+						recursive=True, include=True
+					),
+					status='none'
+				)
+				print('FIELDS:',fields)
+				for f in fields:
+					rate_map[f] = rate_map.get(f,0) + 42
+#WORKING
 
 		# fall-back
-		if rate_map == None:
-			rate_map = {koor:1 for koor in map.get_fields('none')}
+		if self.last_result == None or len(rate_map) < 1:
+			rate_map = {koor:1 for koor in self.hits.get_fields('none')}
+		print('LEVEL', level, 'RATED MAP IS:')
+		Map(rate_map).print()
 
 		return rate_map
 
@@ -380,6 +422,7 @@ class Player(object):
 		return {k:rate for k in self.hits.nachbarn(fields)}
 
 
+	#FIXME: lösche diese unsinnige funktion
 	def _rate_destroy_ship(self, fields, rate=max(len(X_SET), len(Y_SET))):
 		"""
 		Bewertet die Felder zum Zerstören eines getroffenen Schiffes.
@@ -420,6 +463,7 @@ class Player(object):
 		return {t:rate for t in target_list}
 
 
+	#FIXME: rate auf felder einer region aufteilen?
 	def _rate_unknown_fields(self, size=1, rate=1):
 		"""
 		Bewertet unbekannte Felder der Map und gibt eine <target map> zurück.
