@@ -569,7 +569,6 @@ class Map(object):
 			"filter only supports values: None, odd, even"
 
 		# set 'status' to None if 'none' is given
-		if status == 'none': status = None
 		if status != None and not isinstance(status, set):
 			status = {status}
 
