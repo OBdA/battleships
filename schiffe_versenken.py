@@ -411,15 +411,15 @@ class Player(object):
 		return
 
 
-	def _rate_ship_position(self, ship, rate=max(len(X_SET), len(Y_SET))/2 ):
+	def _rate_ship_position(self, field, rate=max(len(X_SET), len(Y_SET))/2 ):
 		"""
 		Bewertet die Felder um ein getroffenes Schiff herum.
 		"""
 
-		# FIXME: 'ship' könnten mehrere angeschossene Schiffe enthalten (fields),
+		# FIXME: 'field' könnten mehrere angeschossene Schiffe enthalten (fields),
 		#        z. B. für fields=get_fields('hit')
 		#        benutze find_ships() um Liste von Schiffen zu erzeugen.
-		return {k:rate for k in self.hits.nachbarn(fields)}
+		return {k:rate for k in self.hits.nachbarn({field}, filter='odd')}
 
 
 	#FIXME: lösche diese unsinnige funktion
