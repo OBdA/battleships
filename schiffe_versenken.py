@@ -723,7 +723,7 @@ class Map(object):
 			print( "{0:2}|".format(Y_SET[y]), end="")
 			for x in range(len(X_SET)):
 				val = self.map.get((x,y), 'none')
-				if isinstance(val, int):
+				if isinstance(val, (int,float)):
 					print("{0:>2}".format(val), end='')
 				else:
 					print("{0:>2}".format(LEGENDE[val]), end='')
@@ -774,12 +774,12 @@ def calc_points(region, rate=1):
 	values = {}
 	n = len(region)
 	for i in range(n//2):
-		val = rate*(i+1)
+		val = rate*(i+1) + n
 		values[region[i]] = val
 		values[region[-(i+1)]] = val
 	if n%2 != 0:
 		i = n//2
-		values[region[i]] = rate*(i+1)
+		values[region[i]] = rate*(i+1) + n
 
 	return values
 
