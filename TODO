@@ -1,4 +1,7 @@
 == BUGS
++ test: _mark_hit_ship()
++ test: _best_move
+
 == DEVELOPMENT
 
 --	Ausbau der Karte(), Vorbereitung zu class Player()
@@ -22,7 +25,8 @@
 	ok nachbarn(): parameter status muss ein set() sein: um gesunkenes Schiff
 	  zu finden müssen felder gefunden werden, die 'hit' oder 'ship' sind!
 	+ mark_hit_ship(): #FIXME: calculate diagonal fields
-	+ surrounf_with(): add filter= for nachbarn()
+	+ surrounf_with(): split function: gleiche Felder (recursiv) und
+	  besetze auf alle Nachbarfelder (der berechneten new_region)
 
 
 == class Player
