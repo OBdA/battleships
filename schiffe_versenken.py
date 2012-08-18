@@ -871,7 +871,7 @@ if __name__ == '__main__':
 
 	# END OF GAME
 	winner.send_message('you_win')
-	looser.send_message('you_lost')
+	loser.send_message('you_lost')
 	exit(0)
 
 #EOF
