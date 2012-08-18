@@ -245,10 +245,50 @@ class Player(object):
 		"""
 		if not self.human: return
 
+		name = 'Kapitän'
 		if msgid == 'ships_distributed':
-			print("\nCaptain!\nEs wurden {} Schiffe verteilt.".format(args[0]))
+			print("{}! Es wurden {} Schiffe verteilt.".format(
+				name, args[0]
+			))
+
+		elif msgid == 'result_sunk':
+			print("{}! Wir haben ein {} versenkt!".format(
+				name, args[0]
+			))
+
+		elif msgid == 'result_hit':
+			print("{}! Wir haben auf Feld {} ein Schiff getroffen!".format(
+				name, as_xy(args[0][0])
+			))
+
+		elif msgid == 'result_water':
+			print("{}! Wasser.".format(
+				name, args[0]
+			))
+
+		elif msgid == 'foe_has_sunk':
+			print("{}! Unser Gegner hat unser Schiff bei {} versenkt!".format(
+				name, as_xy(args[0][0])
+			))
+
+		elif msgid == 'foe_has_hit':
+			print("{}! Unser Gegner hat unser Schiff bei {} getroffen!".format(
+				name, as_xy(args[0][0])
+			))
+
+		elif msgid == 'foe_has_water':
+			print("{}! Unser Gegner macht Wellen bei {}.".format(
+				name, as_xy(args[0][0])
+			))
+
+		elif msgid == 'you_win':
+			print("{}! DU HAST GEWONNEN!")
+
+		elif msgid == 'you_lost':
+			print("{}! DU HAST LEIDER VERLOREN!")
+
 		else:
-			print("\nCaptain!\nNachricht:", msgid, '>>', args)
+			print("Captain!\nNachricht:", msgid, '>>', args)
 
 		return
 
@@ -289,7 +329,7 @@ class Player(object):
 			if name == None:
 				raise Exception("Not existing ship sunk", [result,ship,len(ship)])
 
-			self.send_message('you_sank_ship', name, ship)
+			self.send_message('result_sunk', name, ship)
 
 		elif status == 'hit':
 			map.set(koor, status)
@@ -339,7 +379,7 @@ class Player(object):
 		if result == None:
 			raise Exception("sync error in protocol", (koor, status))
 
-		self.send_message('the_foe_hit', result)
+		self.send_message('foe_has_' + result[1], result)
 		return result
 
 
