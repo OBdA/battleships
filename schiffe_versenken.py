@@ -725,7 +725,7 @@ class Map(object):
 			for x in range(len(X_SET)):
 				val = self.map.get((x,y), 'none')
 				if isinstance(val, (int,float)):
-					print("{0:>2}".format(val), end='')
+					print("{0:>2}".format(int(val)), end='')
 				else:
 					print("{0:>2}".format(LEGENDE[val]), end='')
 			print()
