@@ -143,8 +143,7 @@ class Player(object):
 				)
 				print('FIELDS:',fields)
 				for f in fields:
-					rate_map[f] = rate_map.get(f,0) + 42
-#WORKING
+					rate_map[f] = rate_map.get(f,0) + 20
 
 		# fall-back
 		if self.last_result == None or len(rate_map) < 1:
