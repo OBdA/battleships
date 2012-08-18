@@ -823,7 +823,7 @@ if __name__ == '__main__':
 
 	# Set computer ships
 	p1 = Player()
-	p2 = Player(ki=True)
+	p2 = Player(ki=True, level=99)
 	for ship in SCHIFFE:
 		num = ship['num']
 		for n in range(num):
