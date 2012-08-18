@@ -105,11 +105,7 @@ class Player(object):
 			# mark_hit_ship (level hard)
 			if status == 'hit' and RAND.randint(0,100) <= level + LEVEL['leicht']:
 				self._mark_hit_ship(field)
-				rmap = self._rate_ship_position(koor)
-				for f in rmap.keys():
-					rate_map[f] = rate_map.get(f,0) + rmap[f]
-				rate_map.update(rmap)
-				print('level:',level,'hit_ship_at:',rmap)
+				print('level:',level,'mark_hit_ship_at:',field)
 
 			# mark_sunken_ship (level easy)
 			if status == 'sunk' and RAND.randint(0,100) <= level + LEVEL['leicht']:
@@ -133,13 +129,16 @@ class Player(object):
 			if len(hits) > 0 and RAND.randint(0,100) <= level + LEVEL['leicht']:
 				print('level:', level, 'destroy_ship:',hits, end=' ')
 				field = hits.pop()
+				#FIXME: using splitted surround()
+				# the ship we hit
+				ship = self.hits.nachbarn(
+					{field},
+					status='hit',
+					recursive=True, include=True
+				)
+				print('SHIP:',ship, end=' ')
 				fields = self.hits.nachbarn(
-					# the ship we hit
-					self.hits.nachbarn(
-						{field},
-						status='hit',
-						recursive=True, include=True
-					),
+					ship,
 					status='none'
 				)
 				print('FIELDS:',fields)
