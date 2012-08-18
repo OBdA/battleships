@@ -148,6 +148,7 @@ class Player(object):
 		# fall-back
 		if self.last_result == None or len(rate_map) < 1:
 			rate_map = {koor:1 for koor in self.hits.get_fields('none')}
+			print('LEVEL', level, 'random_field')
 		print('LEVEL', level, 'RATED MAP IS:')
 		Map(rate_map).print()
 
@@ -233,7 +234,9 @@ class Player(object):
 		best_rate  = max(target_map.values())
 		best_moves = [xy for xy,val in target_map.items() if val == best_rate]
 
-		return RAND.choice(best_moves)
+		f =  RAND.choice(best_moves)
+		print('foes turn: {} with {} points'.format(f, target_map[f]))
+		return f
 
 
 	def send_message(self, msgid, *args):
