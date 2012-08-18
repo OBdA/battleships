@@ -282,13 +282,13 @@ class Player(object):
 			))
 
 		elif msgid == 'you_win':
-			print("{}! DU HAST GEWONNEN!")
+			print("{}! DU HAST GEWONNEN!".format(name))
 
 		elif msgid == 'you_lost':
-			print("{}! DU HAST LEIDER VERLOREN!")
+			print("{}! DU HAST LEIDER VERLOREN!".format(name))
 
 		else:
-			print("Captain!\nNachricht:", msgid, '>>', args)
+			print("UNKNOWN MESSAGE:", msgid, '>>', args)
 
 		return
 
