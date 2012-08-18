@@ -521,8 +521,7 @@ class Player(object):
 			for k,v in val_list.items():
 				t_map[k] = t_map.get(k, 0) + v
 
-		max_val = max(t_map.values())
-
+		#FIXME: use fall-back if t_map is empty
 		return t_map
 
 
