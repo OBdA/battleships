@@ -1,81 +1,18 @@
 == BUGS
-+ test: _mark_hit_ship()
-+ test: _best_move
-
 == DEVELOPMENT
-
---	Ausbau der Karte(), Vorbereitung zu class Player()
-	ok konvention für parameter
-	ok set(self, koor, status)
-	ok status() umbenennen zu get(self, koor)
-	ok funktionen wasser(), treffer(), ... umschreiben zu set(self,koor,status)
-	ok parameter/namen vereinheitlichen
-	ok nachbarn(): rename parameter 'feld' to 'status'
-	ok regions(): rename parameter 'feld' to 'status'
-	ok umbenennen der funktionen find_*() in rate_*()
-	  ok find_ship() --> rate_unknown_fields() -> <target map>
-	  ok destroy_ship() --> rate_destroy_ship() -> <target map>
-	  ok rate_ship_position() -> <target map>
-	ok parameter rate für Bewertungsfunktionen (-> ,schiffe_versenken.py)
-	ok anzahl in der SCHIFFE-Liste als {'num':3}
-	ok <status> in allen funktionen durchsetzen 'x'->'hit', 'o'->'water, ...
-	ok cleanup comments
-	ok class Player: Funktionen aus Karte() übertragen
-	ok class Karte in class Map umbenennen
-	ok nachbarn(): parameter status muss ein set() sein: um gesunkenes Schiff
-	  zu finden müssen felder gefunden werden, die 'hit' oder 'ship' sind!
-	+ mark_hit_ship(): #FIXME: calculate diagonal fields
-	+ surrounf_with(): split function: gleiche Felder (recursiv) und
-	  besetze auf alle Nachbarfelder (der berechneten new_region)
-
++	benutzer Map().surround_with() an allen Stellen
++	'hilfe' implementieren
+-	Befehlssatz festlegen
++	Wahrscheinlichkeit für KI-Funktionen abhängig von Schwierigkeitsgrad
+	festlegen 
++	remove other FIXMEs
++	public/private methods (sortieren, umbenennen, löschen)
 
 == class Player
-	+ benutzer Map().surround_with() an allen Stellen
 
-	
---	Algorithmen (changeing interfaces)
-
-	+ bewertungsfunktion löscht auf einer wasser karte alle regionen mit
-	  len(region)<size und status(field)='hit'.
-	  berechnet erst dann die target map. diese karte wird als basis zur
-	  next-shot berechnung genutzt.
-	+ bei einem Treffer können die diagonalen Felder ausgeschlossen werden
-	+ nachbarn() braucht neue option filter={none,odd,even} für
-	  {kein Filter(default), diagonale Felder, rechtwinklige Felder}
-	  --> impliziert recursive=False, da Verhalten nicht definiert
-
-	+ <koor>		rate_next_turn(self, last_status, debug=False)
-	  Sucht nächste Koordinate zum Schuss. 'debug' gibt Einzelheiten zur 
-	  Berechnung aus.
-
-	+ <fields_list>	find_ships(self, fields=None)
-	  Sucht aus einer Liste von Feldern alle getroffenen Schiffe und
-	  eine Liste aller Schiffe zurück.
-	  Default für Fields: self._get_fields(LEGENDE['hit'])
++	<fields_list>	find_ships(self, fields=None)
+	Sucht aus einer Liste von Feldern alle getroffenen Schiffe und
+	eine Liste aller Schiffe zurück.
+	Default für Fields: self._get_fields(LEGENDE['hit'])
  
-	+ <target_list>	rate_unknown_regions(self, size=1, rate=1, debug=False)
-	+ <target_list>	rate_destroy_ship(self, fields=None, rate=N)
-	+ <target_list>	rate_ship_position(self, fields=None, rate=N/2)
-
-	+ None			mark_sunken_ship(self, fields)
-
---	Strategieimplementierung: computer level 0-10 (0-100%)
-	* update_hit_map(last_shot)	
-		+ sunk: WS(level+50%): benutze mark_sunken_ship()
-	* next_shot(last_shot)
-		+ hit: WS(level+20%): benutze search_and_destroy_hit_ship()
-		+ any: WS(level): benutze shot_biggest_hole()
-		+ ELSE benutze shot_random()
-
---	Befehl 'hilfe' implementieren
-
-
-==	REWRITE
-
---	LEGENDE überall nutzen
-
---	Karte umschreiben
-	+ enthält zwei Karten: die Schiffskarte und die Trefferkarte
-	+ zwei Zähler: Anzahl vorhandener Schiffe, Anzahl getroffener Schiffe
-	+ random.Random() object
 #EOF
