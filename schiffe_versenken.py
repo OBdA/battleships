@@ -128,20 +128,15 @@ class Player(object):
 			hits = self.hits.get_fields('hit')
 			if len(hits) > 0 and RAND.randint(0,100) <= level + LEVEL['leicht']:
 				#print('level:', level, 'destroy_ship:',hits, end=' ')
+
+				# get one field, get the ship and find all empty neighbours
 				field = hits.pop()
-				#FIXME: using splitted surround()
-				# the ship we hit
-				ship = self.hits.nachbarn(
-					{field},
-					status='hit',
-					recursive=True, include=True
-				)
-				#print('SHIP:',ship, end=' ')
 				fields = self.hits.nachbarn(
-					ship,
+					self.hits.get_region(field),
 					status='none'
 				)
-				##print('FIELDS:',fields)
+
+				# add rate to all empty fields
 				for f in fields:
 					rate_map[f] = rate_map.get(f,0) + 20
 
@@ -308,7 +303,6 @@ class Player(object):
 		assert isinstance(result, tuple), "<result> must be an tuple (koor,status)"
 
 		koor,status = result
-		assert is_koor(koor), "no valid <koor> in <result>"
 		assert status in STATUS_SET, "no valid <status> in <result>"
 
 		map = self.hits
@@ -385,15 +379,6 @@ class Player(object):
 
 	## private methods
 
-	def _mark(self, koor, status):
-		"""Mark a field on the hits map."""
-		assert isinstance(koor, tuple), "Need a tuple as field coordinate."
-		assert status in STAT_SET, "Need 'status' as element from STAT_SET."
-
-		self.hits[koor] = status
-		return
-
-
 	def place_ship(self, shipdef):
 		"""
 		Randomly set a ship onto ship map and returns the ship region or
@@ -441,70 +426,6 @@ class Player(object):
 		return
 
 
-	def _mark_sunken_ship(self, region):
-		"""
-		Markiert alle Nachbarfelder eines Schiffen, da hier kein anderes
-		Schiff liegen darf.
-		"""
-
-		#FIXME: replace with surround_with(), add koor={} first
-		self.hits.set_fields(self.hits.nachbarn(set(region)), 'water')
-		return
-
-
-	def _rate_ship_position(self, field, rate=max(len(X_SET), len(Y_SET))/2 ):
-		"""
-		Bewertet die Felder um ein getroffenes Schiff herum.
-		"""
-
-		# FIXME: 'field' könnten mehrere angeschossene Schiffe enthalten (fields),
-		#        z. B. für fields=get_fields('hit')
-		#        benutze find_ships() um Liste von Schiffen zu erzeugen.
-		return {k:rate for k in self.hits.nachbarn({field}, filter='odd')}
-
-
-	#FIXME: lösche diese unsinnige funktion
-	def _rate_destroy_ship(self, fields, rate=max(len(X_SET), len(Y_SET))):
-		"""
-		Bewertet die Felder zum Zerstören eines getroffenen Schiffes.
-		"""
-		# FIXME: 'fields' könnten mehrere angeschossene Schiffe enthalten,
-		#        z. B. für get_fields('hit')
-		#        benutze find_ships() um Liste von Schiffen zu erzeugen.
-
-		# Lage des Schiffes:
-		# eine Achse ist fest, die andere variiert: finde die feste Achse,
-		# sortiere die Indizes der variierende Achse um mögliche Koordinaten
-		# zu finden.
-		x_set = set()
-		y_set = set()
-		for koord in fields:
-			x_set.add(koor[0])
-			y_set.add(koor[1])
-
-		assert len(x_set)+len(y_set) == len(fields)+1, "ship fields not in a row"
-		assert len(y_set) == 1 or len(x_set) == 1, "ship fields not in a row"
-
-		target_list=set()
-		if len(x_set) == 1:
-			i_var = list(y_set)
-			i_var.sort()
-			if i_var[0] > 0:
-				target_list.add((list(x_set)[0],i_var[0]-1))
-			if i_var[-1] < len(Y_SET)-1:
-				target_list.add((list(x_set)[0],i_var[-1]+1))
-		else:
-			i_var = list(x_set)
-			i_var.sort()
-			if i_var[0] > 0:
-				target_list.add((i_var[0]-1,list(y_set)[0]))
-			if i_var[-1] < len(X_SET)-1:
-				target_list.add((i_var[-1]+1,list(y_set)[0]))
-
-		return {t:rate for t in target_list}
-
-
-	#FIXME: rate auf felder einer region aufteilen?
 	def _rate_unknown_fields(self, size=1, rate=1):
 		"""
 		Bewertet unbekannte Felder der Map und gibt eine <target map> zurück.
@@ -521,7 +442,6 @@ class Player(object):
 			for k,v in val_list.items():
 				t_map[k] = t_map.get(k, 0) + v
 
-		#FIXME: use fall-back if t_map is empty
 		return t_map
 
 
@@ -788,39 +708,6 @@ class Map(object):
 
 ## classmethods
 
-def is_koor(koor):
-	if len(koor) != 2: return False
-	if koor[0] in range(len(X_SET)) and koor[1] in range(len(Y_SET)):
-		return True
-	return False
-
-
-def is_region(region):
-	"""
-	Test, ob 'region' eine <region> ist.
-	"""
-	assert isinstance(region, list), "region must be a list"
-
-	# Their must be minimum of two fields for a region
-	if len(region) < 2: return False
-	x_set = set()
-	y_set = set()
-	for xy in region:
-		x_set.add(xy[0])
-		y_set.add(xy[1])
-
-	# one coordinate have #region elements, the other has only one element
-	if len(x_set) + len(y_set) != len(region)+1:
-		return False
-
-	# one of the coordinates must have exacly one element
-	if len(x_set) == 1 or len(y_set) == 1:
-		return True
-
-	# this can not be a region
-	return False
-
-
 def calc_points(region, rate=1):
 	"""
 	Returns <target map> of the given region.
@@ -856,13 +743,6 @@ def as_koor(string):
 		return None
 
 	return (x,y)
-
-
-#def status(char):
-#	"""
-#	Calculates the 'status' from a map character.
-#	"""
-#	return [s for s,c in LEGENDE.items() if c == char][0]
 
 
 ##
