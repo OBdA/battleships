@@ -105,12 +105,12 @@ class Player(object):
 			# mark_hit_ship (level hard)
 			if status == 'hit' and RAND.randint(0,100) <= level + LEVEL['leicht']:
 				self._mark_hit_ship(field)
-				print('level:',level,'mark_hit_ship_at:',field)
+				#print('level:',level,'mark_hit_ship_at:',field)
 
 			# mark_sunken_ship (level easy)
 			if status == 'sunk' and RAND.randint(0,100) <= level + LEVEL['leicht']:
 				self.hits.surround_with(field, 'water')
-				print('level:',level,'ship_is_sunk')
+				#print('level:',level,'ship_is_sunk')
 
 			# rate unknown fields (level intermediate)
 			if RAND.randint(0,100) <= level + LEVEL['leicht']:
@@ -122,12 +122,12 @@ class Player(object):
 				rmap = self._rate_unknown_fields(size=maximum)
 				for f in rmap.keys():
 					rate_map[f] = rate_map.get(f,0) + rmap[f]
-				print('level:',level,'rate_fields_size:',maximum)
+				#print('level:',level,'rate_fields_size:',maximum)
 
 			# rate best fields to detroy a ship which was hit
 			hits = self.hits.get_fields('hit')
 			if len(hits) > 0 and RAND.randint(0,100) <= level + LEVEL['leicht']:
-				print('level:', level, 'destroy_ship:',hits, end=' ')
+				#print('level:', level, 'destroy_ship:',hits, end=' ')
 				field = hits.pop()
 				#FIXME: using splitted surround()
 				# the ship we hit
@@ -136,21 +136,21 @@ class Player(object):
 					status='hit',
 					recursive=True, include=True
 				)
-				print('SHIP:',ship, end=' ')
+				#print('SHIP:',ship, end=' ')
 				fields = self.hits.nachbarn(
 					ship,
 					status='none'
 				)
-				print('FIELDS:',fields)
+				##print('FIELDS:',fields)
 				for f in fields:
 					rate_map[f] = rate_map.get(f,0) + 20
 
 		# fall-back
 		if self.last_result == None or len(rate_map) < 1:
 			rate_map = {koor:1 for koor in self.hits.get_fields('none')}
-			print('LEVEL', level, 'random_field')
-		print('LEVEL', level, 'RATED MAP IS:')
-		Map(rate_map).print()
+			#print('LEVEL', level, 'random_field')
+		#print('LEVEL', level, 'RATED MAP IS:')
+		#Map(rate_map).print()
 
 		return rate_map
 
