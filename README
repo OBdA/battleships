@@ -1,0 +1,28 @@
+This is a python implementation of the well known game "battleships".
+
+This is my very first python program I ever wrote, something like my
+"Meisterstück". Since many years I wanted to learn python, because of
+the very good (and very efficient) tools written in this programming
+language.
+
+In summer holidays this year, my family and I were at the northern sea
+coast, we visit an old marine fort. It was called "Fort Kugelbake" and
+is located near Cuxhaven. My seven years old son was very impressed and
+after we returned to our holiday flat we played a round battleships the
+first time.
+
+He just learned the art of reading and writing last year, so he now
+could find the coordinates "A6" or "I9" himself. (That's very critical,
+because of the information hiding nature of "battleships").  We both
+played this game until evening. In the late evening rose the thought of
+a project I could realize to learn python.
+
+There is it.
+It's far away from being perfect or finished.
+I tried, try and further will try to comment extensivly. Perhaps this
+will lead somehow to learn python a little bit easier, too.
+
+So, now enjoy playing "battleships" or reading the source, Luke!
+
+	- Olaf Ohlenmacher (August 2012)
+
