@@ -1,18 +1,43 @@
 == BUGS
-== DEVELOPMENT
-+	benutzer Map().surround_with() an allen Stellen
-+	'hilfe' implementieren
--	Befehlssatz festlegen
+== MAIN
++	public/private methods (sortieren, umbenennen, löschen)
+	class Map()
+	def __init__
+	def get
+	def get_fields
+	def set
+	def set_fields
+	def print
+	def nachbarn --> neighbours()
+	def surround_with
+	def regions
+	def get_region  -> get_region_for()
+
 +	Wahrscheinlichkeit für KI-Funktionen abhängig von Schwierigkeitsgrad
 	festlegen 
-+	remove other FIXMEs
-+	public/private methods (sortieren, umbenennen, löschen)
++	add more comments
 
-== class Player
+== DEVELOPMENT
++	rewrite of regions()
++	split turn() into new human_turn()
+	gather all human commands and actions in new function
++	place_ship() --> place_ships()
+	integriere  cleanup_ships_map() in place_ships(), lösche cleanup_ships_map()
++	Bei Spielende Karte des Gegners zeigen
++	add tests
++	add installation routines
++	add I18N support
 
 +	<fields_list>	find_ships(self, fields=None)
 	Sucht aus einer Liste von Feldern alle getroffenen Schiffe und
 	eine Liste aller Schiffe zurück.
 	Default für Fields: self._get_fields(LEGENDE['hit'])
- 
+
+==	FEATURES
++	import Tk for graphical interface
++	pimp the AI
++	add more rules
+	- free turn if you hit a ship
+	- bombardment rule (see http://de.wikipedia.org/wiki/Schiffe_versenken)
+
 #EOF
