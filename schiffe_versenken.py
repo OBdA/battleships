@@ -732,22 +732,38 @@ class Map(object):
 		return positions
 
 
-	def surround_with(self, koor, status, what=None):
+	def get_region(self, field, what=None):
+		"""
+		Returns a region containing 'field' and all fields with equal
+		status surrounding it.
+		If 'what' is set surrounding fields must have field status 'what'.
+		"""
+
+		# set default field status to search for
+		if what == None:
+			what = self.get(field)
+
+		# get all neighbours of 'field' with equal field status
+		region = self.nachbarn(
+			{field}, what, include=True, recursive=True
+		)
+
+		return region
+
+
+	def surround_with(self, field, status, what=None):
 		"""
 		Set the surrounding fields of a region. The region is calculated from
 		one fields and all neighbored fields with equal status.
 		"""
 
-		if what == None:
-			what = self.get(koor)
-
-		region = self.nachbarn(
-			{koor}, what, include=True, recursive=True
+		# get all neighbours of region containing 'field' and set them
+		# to 'what' (defaults to field status unless set).
+		self.set_fields(
+			self.nachbarn(self.get_region(field), status=what),
+			status
 		)
-		neigh = self.nachbarn(region)
-		self.set_fields(neigh, 'water')
 
-		#print("region at:",koor, "marked at", neigh, "with", status)
 		return
 
 
