@@ -793,36 +793,40 @@ if __name__ == '__main__':
 	p2.send_message('ships_distributed', p2.ship_count)
 	p1.foe_has_ships(SCHIFFE)
 
-	#FIXME: Behandlung der Spieler
-	#		player = set(p1, p2);
-	#		active = player[round % len(player)]
-	#		other  = player - set(active)
+	# initialze turn counter
+	turn = 0
+
+	# create a player's list
+	player = list()
+	player.append(p1)
+	player.append(p2)
+
+	# save number of players
+	num_player = len(player)
+
+	# Nobody has won or loose, yet
 	winner	= None
 	loser	= None
 	while True:
-		if p1.is_all_sunk():
-			loser	= p1
-			winner	= p2
-			break
-		koor = p1.turn()
-		if koor == None:
-			# skip this turn
-			pass
-		else:
-			# take turn and handle result
-			p1.handle_result(p2.bomb(koor))
+		print('turn',turn,'num_player',num_player)
 
-		if p2.is_all_sunk():
-			loser	= p2
-			winner	= p1
+		# calculate which player is active or passive
+		active  = player[turn   % num_player]
+		passive = player[(turn+1) % num_player]
+
+		if active.is_all_sunk():
+			loser	= active
+			winner	= passive
 			break
-		koor = p2.turn()
+		koor = active.turn()
 		if koor == None:
 			# skip this turn
 			pass
 		else:
 			# take turn and handle result
-			p2.handle_result(p1.bomb(koor))
+			active.handle_result(passive.bomb(koor))
+
+		turn += 1
 
 	# END OF GAME
 	winner.send_message('you_win')
