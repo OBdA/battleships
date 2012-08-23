@@ -161,6 +161,7 @@ class Player(object):
 	def foe_has_ships(self, shipdef):
 		self.foeships = copy.deepcopy(shipdef)
 
+
 	def turn(self):
 		"""
 		Play one turn and return a koordninate to bomb the foe's ships.
@@ -186,6 +187,8 @@ class Player(object):
 				cmd = token.pop(0).lower()
 				if re.match('^(resign|aufgeben|quit|exit|ende|stop)', cmd):
 					exit(0)
+				elif re.match('^(hilfe|help)', cmd):
+					_hilfe()
 				elif re.match('^(skip)', cmd):
 					break
 				elif cmd == '':
@@ -707,6 +710,23 @@ class Map(object):
 
 
 ## classmethods
+
+def _hilfe():
+	print( """
+ende  - Du gibst auf und beendest das Spiel.
+skip  - Du verzichtest auf Deinen Zug.
+ships - Schau auf Deine geheime Karte.
+tipp  - Ich gebe Dir einen Tipp.
+hilfe - Ich zeige Dir die Befehle, die ich verstehe.
+
+Gibst Du mir keine Eingabe, zeige ich Dir Deine Karte.
+Gibst Du mir einen Buchstaben und eine Zahl, wie A4, oder D10
+schießt Du auf dieses Feld.
+
+Was soll ich tun?
+""")
+	return
+
 
 def calc_points(region, rate=1):
 	"""
