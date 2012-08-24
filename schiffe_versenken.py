@@ -158,7 +158,7 @@ class Player(object):
 		map.set_fields(map.get_fields('water'), 'none')
 
 
-	def foe_has_ships(self, shipdef):
+	def save_foes_ships(self, shipdef):
 		self.foeships = copy.deepcopy(shipdef)
 
 
@@ -787,11 +787,11 @@ if __name__ == '__main__':
 
 	p1.cleanup_ships_map()
 	p1.send_message('ships_distributed', p1.ship_count)
-	p2.foe_has_ships(SCHIFFE)
+	p2.save_foes_ships(SCHIFFE)
 
 	p2.cleanup_ships_map()
 	p2.send_message('ships_distributed', p2.ship_count)
-	p1.foe_has_ships(SCHIFFE)
+	p1.save_foes_ships(SCHIFFE)
 
 	# initialze turn counter
 	turn = 0
