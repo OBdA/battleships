@@ -60,11 +60,11 @@ class Player(object):
 
 	def __init__(self, ki=False, level=50):
 
-		# interaktive or computer player
+		# Interactive or computer player
 		self.human		= not ki
 		self.ki_level	= level
 
-		# Count all my ships
+		# Count all my ships and the foe's ships
 		self.ship_count	= 0
 		self.foeships	= []
 
