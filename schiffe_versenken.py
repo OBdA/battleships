@@ -84,70 +84,34 @@ class Player(object):
 		## turn
 		## send_message
 
-	def _best_moves(self):
+
+	def place_ship(self, shipdef):
 		"""
-		Calculate the best move and return the coordinate.
+		Randomly set a ship onto ship map and returns the ship region or
+		None if no space is left.
 		"""
+		assert isinstance(shipdef, dict), "'shipdef' must be of type 'dict'"
 
-		# Level (0-100), set to maximum if human request a good move
-		level = self.ki_level
-		if self.human: level = 100
+		what, size = shipdef['name'], shipdef['size']
+		map = self.ships
 
-		## we create a map with a rate for each field. the field with the
-		## highest rate will be bombed...
+		# chose a free region with minimum size of the ship
+		region = RAND.choice(map.regions(size))
+		if len(region) == 0: return None
 
-		rate_map = dict()
+		# get a starting point for the ship
+		first = RAND.randint(0,len(region)-size)
 
-		## mark some fields from the last turn
-		if self.last_result != None:
-			field, status = self.last_result
+		# place the ship
+		map.set_fields(region[first:first+size], 'ship')
 
-			# mark_hit_ship (level hard)
-			if status == 'hit' and RAND.randint(0,100) <= level + LEVEL['leicht']:
-				self._mark_hit_ship(field)
-				#print('level:',level,'mark_hit_ship_at:',field)
+		# place water around all ship fields
+		map.set_fields(
+			map.nachbarn(set(region[first:first+size])),
+			'water')
 
-			# mark_sunken_ship (level easy)
-			if status == 'sunk' and RAND.randint(0,100) <= level + LEVEL['leicht']:
-				self.hits.surround_with(field, 'water')
-				#print('level:',level,'ship_is_sunk')
-
-			# rate unknown fields (level intermediate)
-			if RAND.randint(0,100) <= level + LEVEL['leicht']:
-				# what is the maximum ship size?
-				maximum = max(
-					[shipdef['size'] for shipdef in self.foeships \
-					if shipdef['num'] > 0]
-				)
-				rmap = self._rate_unknown_fields(size=maximum)
-				for f in rmap.keys():
-					rate_map[f] = rate_map.get(f,0) + rmap[f]
-				#print('level:',level,'rate_fields_size:',maximum)
-
-			# rate best fields to detroy a ship which was hit
-			hits = self.hits.get_fields('hit')
-			if len(hits) > 0 and RAND.randint(0,100) <= level + LEVEL['leicht']:
-				#print('level:', level, 'destroy_ship:',hits, end=' ')
-
-				# get one field, get the ship and find all empty neighbours
-				field = hits.pop()
-				fields = self.hits.nachbarn(
-					self.hits.get_region(field),
-					status='none'
-				)
-
-				# add rate to all empty fields
-				for f in fields:
-					rate_map[f] = rate_map.get(f,0) + 20
-
-		# fall-back
-		if self.last_result == None or len(rate_map) < 1:
-			rate_map = {koor:1 for koor in self.hits.get_fields('none')}
-			#print('LEVEL', level, 'random_field')
-		#print('LEVEL', level, 'RATED MAP IS:')
-		#Map(rate_map).print()
-
-		return rate_map
+		self.ship_count += 1
+		return region[first:first+size]
 
 
 	def cleanup_ships_map(self):
@@ -160,6 +124,14 @@ class Player(object):
 
 	def save_foes_ships(self, shipdef):
 		self.foeships = copy.deepcopy(shipdef)
+
+
+	def is_all_sunk(self):
+		"""
+		Returns True when all own ships are sunk.
+		"""
+		if self.ship_count < 1: return True
+		return False
 
 
 	def turn(self):
@@ -237,6 +209,87 @@ class Player(object):
 		return f
 
 
+	def bomb(self, koor):
+		"""Bomb a field on the ship map and return the result."""
+		assert isinstance(koor, tuple), "Need a tuple as field coordinate."
+
+		map = self.ships
+		result = None
+		status = map.get(koor)
+		if status == 'ship' or status == 'hit':
+			map.set(koor, 'hit')
+
+			# check for sunken ship
+			ship = map.nachbarn(
+				{koor}, status={'ship', 'hit'}, include=True, recursive=True
+			)
+			hits = map.nachbarn(
+				{koor}, status='hit', include=True, recursive=True
+			)
+#			print('SHIP:',ship,'HITS:',hits)
+
+			if len(ship-hits) < 1:
+				map.set_fields(ship, 'sunk')
+				self.ship_count -= 1
+				result =  (koor, 'sunk')
+			else:
+				result =  (koor, 'hit')
+
+		elif status == 'none' or status == 'water':
+			map.set(koor, 'water')
+			result =  (koor, 'water')
+
+		if result == None:
+			raise Exception("sync error in protocol", (koor, status))
+
+		self.send_message('foe_has_' + result[1], result)
+		return result
+
+
+	def handle_result(self, result):
+		"""
+		Behandle alle möglichen Ergebnisse eines Bombardments des Gegeners.
+		"""
+		assert isinstance(result, tuple), "<result> must be an tuple (koor,status)"
+
+		koor,status = result
+		assert status in STATUS_SET, "no valid <status> in <result>"
+
+		map = self.hits
+		if status == 'sunk':
+			map.set(koor, status)
+			ship = map.nachbarn( {koor}, {'hit','sunk'}, True, True)
+
+			# mark sunken ship in my map
+			map.set_fields(ship, 'sunk')
+
+			# delete ship from the list of foe's ships
+			name = None
+			for s in self.foeships:
+				if s['size'] == len(ship):
+					s['num'] -= 1
+					name = s['name']
+					break
+			if name == None:
+				raise Exception("Not existing ship sunk", [result,ship,len(ship)])
+
+			self.send_message('result_sunk', name, ship)
+
+		elif status == 'hit':
+			map.set(koor, status)
+			self.send_message( 'result_' + status, result )
+
+		elif status == 'water':
+			map.set(koor, status)
+			self.send_message( 'result_' + status, result )
+
+		else:
+			raise Exception("unable to handle result", result)
+
+		self.last_result = result
+		return
+
+
 	def send_message(self, msgid, *args):
 		"""
 		Send message to the player (only for interactive mode).
@@ -291,128 +344,6 @@ class Player(object):
 		return
 
 
-	def is_all_sunk(self):
-		"""
-		Returns True when all own ships are sunk.
-		"""
-		if self.ship_count < 1: return True
-		return False
-
-
-	def handle_result(self, result):
-		"""
-		Behandle alle möglichen Ergebnisse eines Bombardments des Gegeners.
-		"""
-		assert isinstance(result, tuple), "<result> must be an tuple (koor,status)"
-
-		koor,status = result
-		assert status in STATUS_SET, "no valid <status> in <result>"
-
-		map = self.hits
-		if status == 'sunk':
-			map.set(koor, status)
-			ship = map.nachbarn( {koor}, {'hit','sunk'}, True, True)
-
-			# mark sunken ship in my map
-			map.set_fields(ship, 'sunk')
-
-			# delete ship from the list of foe's ships
-			name = None
-			for s in self.foeships:
-				if s['size'] == len(ship):
-					s['num'] -= 1
-					name = s['name']
-					break
-			if name == None:
-				raise Exception("Not existing ship sunk", [result,ship,len(ship)])
-
-			self.send_message('result_sunk', name, ship)
-
-		elif status == 'hit':
-			map.set(koor, status)
-			self.send_message( 'result_' + status, result )
-
-		elif status == 'water':
-			map.set(koor, status)
-			self.send_message( 'result_' + status, result )
-
-		else:
-			raise Exception("unable to handle result", result)
-
-		self.last_result = result
-		return
-
-
-	def bomb(self, koor):
-		"""Bomb a field on the ship map and return the result."""
-		assert isinstance(koor, tuple), "Need a tuple as field coordinate."
-
-		map = self.ships
-		result = None
-		status = map.get(koor)
-		if status == 'ship' or status == 'hit':
-			map.set(koor, 'hit')
-
-			# check for sunken ship
-			ship = map.nachbarn(
-				{koor}, status={'ship', 'hit'}, include=True, recursive=True
-			)
-			hits = map.nachbarn(
-				{koor}, status='hit', include=True, recursive=True
-			)
-#			print('SHIP:',ship,'HITS:',hits)
-
-			if len(ship-hits) < 1:
-				map.set_fields(ship, 'sunk')
-				self.ship_count -= 1
-				result =  (koor, 'sunk')
-			else:
-				result =  (koor, 'hit')
-
-		elif status == 'none' or status == 'water':
-			map.set(koor, 'water')
-			result =  (koor, 'water')
-
-		if result == None:
-			raise Exception("sync error in protocol", (koor, status))
-
-		self.send_message('foe_has_' + result[1], result)
-		return result
-
-
-	## private methods
-
-	def place_ship(self, shipdef):
-		"""
-		Randomly set a ship onto ship map and returns the ship region or
-		None if no space is left.
-		"""
-		assert isinstance(shipdef, dict), "'shipdef' must be of type 'dict'"
-
-		what, size = shipdef['name'], shipdef['size']
-		map = self.ships
-
-		# chose a free region with minimum size of the ship
-		region = RAND.choice(map.regions(size))
-		if len(region) == 0: return None
-
-		# get a starting point for the ship
-		first = RAND.randint(0,len(region)-size)
-
-		# place the ship
-		map.set_fields(region[first:first+size], 'ship')
-
-		# place water around all ship fields
-		map.set_fields(
-			map.nachbarn(set(region[first:first+size])),
-			'water')
-
-		self.ship_count += 1
-		return region[first:first+size]
-
-
-	## Funktion zum Markieren
-
 	def _mark_hit_ship(self, field):
 		"""
 		Markiert die Felder diagonal, da hier kein Schiff liegen darf.
@@ -427,6 +358,72 @@ class Player(object):
 		)
 
 		return
+
+
+	def _best_moves(self):
+		"""
+		Calculate the best move and return the coordinate.
+		"""
+
+		# Level (0-100), set to maximum if human request a good move
+		level = self.ki_level
+		if self.human: level = 100
+
+		## we create a map with a rate for each field. the field with the
+		## highest rate will be bombed...
+
+		rate_map = dict()
+
+		## mark some fields from the last turn
+		if self.last_result != None:
+			field, status = self.last_result
+
+			# mark_hit_ship (level hard)
+			if status == 'hit' and RAND.randint(0,100) <= level + LEVEL['leicht']:
+				self._mark_hit_ship(field)
+				#print('level:',level,'mark_hit_ship_at:',field)
+
+			# mark_sunken_ship (level easy)
+			if status == 'sunk' and RAND.randint(0,100) <= level + LEVEL['leicht']:
+				self.hits.surround_with(field, 'water')
+				#print('level:',level,'ship_is_sunk')
+
+			# rate unknown fields (level intermediate)
+			if RAND.randint(0,100) <= level + LEVEL['leicht']:
+				# what is the maximum ship size?
+				maximum = max(
+					[shipdef['size'] for shipdef in self.foeships \
+					if shipdef['num'] > 0]
+				)
+				rmap = self._rate_unknown_fields(size=maximum)
+				for f in rmap.keys():
+					rate_map[f] = rate_map.get(f,0) + rmap[f]
+				#print('level:',level,'rate_fields_size:',maximum)
+
+			# rate best fields to detroy a ship which was hit
+			hits = self.hits.get_fields('hit')
+			if len(hits) > 0 and RAND.randint(0,100) <= level + LEVEL['leicht']:
+				#print('level:', level, 'destroy_ship:',hits, end=' ')
+
+				# get one field, get the ship and find all empty neighbours
+				field = hits.pop()
+				fields = self.hits.nachbarn(
+					self.hits.get_region(field),
+					status='none'
+				)
+
+				# add rate to all empty fields
+				for f in fields:
+					rate_map[f] = rate_map.get(f,0) + 20
+
+		# fall-back
+		if self.last_result == None or len(rate_map) < 1:
+			rate_map = {koor:1 for koor in self.hits.get_fields('none')}
+			#print('LEVEL', level, 'random_field')
+		#print('LEVEL', level, 'RATED MAP IS:')
+		#Map(rate_map).print()
+
+		return rate_map
 
 
 	def _rate_unknown_fields(self, size=1, rate=1):
@@ -457,6 +454,7 @@ class Map(object):
 			self.map = dict
 
 
+#T
 	def get(self, koor):
 		"""
 		Returns status of a field.
