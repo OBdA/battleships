@@ -454,7 +454,6 @@ class Map(object):
 			self.map = dict
 
 
-#T
 	def get(self, koor):
 		"""
 		Returns status of a field.
@@ -463,6 +462,30 @@ class Map(object):
 		assert len(koor) == 2,			"need two coordinates"
 
 		return self.map.get(koor, 'none')
+
+
+	def get_fields(self, status=None):
+		"""
+		Berechnet alle Felder, die den den Status 'status' haben.
+		Ist 'status' nicht gesetzt (default), werden alle Felder zurück
+		gegeben, zu denen *kein* Status bekannt ist.
+
+		Returns fields with 'status' (default: unknown status)
+		"""
+
+		# set 'status' to None if 'none' is given
+		if status == 'none': status = None
+
+		list = set()
+		if status == None:
+			for x in range(len(X_SET)):
+				for y in range(len(Y_SET)):
+					if (x,y) not in self.map: list.add((x,y))
+			return list
+
+		for k,s in self.map.items():
+			if status == s: list.add(k)
+		return list
 
 
 	def set(self, koor, status):
@@ -490,28 +513,23 @@ class Map(object):
 		return
 
 
-	def get_fields(self, status=None):
-		"""
-		Berechnet alle Felder, die den den Status 'status' haben.
-		Ist 'status' nicht gesetzt (default), werden alle Felder zurück
-		gegeben, zu denen *kein* Status bekannt ist.
+	def print(self):
+		# print coodinates from X_SET (A..Z)
+		print( "    ", end="" )
+		for x in range(len(X_SET)):
+			print( X_SET[x], end=" ")
+		print()
+		print( "  +", len(X_SET) * '--', sep="")
 
-		Returns fields with 'status' (default: unknown status)
-		"""
-
-		# set 'status' to None if 'none' is given
-		if status == 'none': status = None
-
-		list = set()
-		if status == None:
+		for y in range(len(Y_SET)):
+			print( "{0:2}|".format(Y_SET[y]), end="")
 			for x in range(len(X_SET)):
-				for y in range(len(Y_SET)):
-					if (x,y) not in self.map: list.add((x,y))
-			return list
-
-		for k,s in self.map.items():
-			if status == s: list.add(k)
-		return list
+				val = self.map.get((x,y), 'none')
+				if isinstance(val, (int,float)):
+					print("{0:>2}".format(int(val)), end='')
+				else:
+					print("{0:>2}".format(LEGENDE[val]), end='')
+			print()
 
 
 	def nachbarn(self, fields, status=None, include=False, recursive=False, filter=None):
@@ -592,6 +610,22 @@ class Map(object):
 		return result_set
 
 
+	def surround_with(self, field, status, what=None):
+		"""
+		Set the surrounding fields of a region. The region is calculated from
+		one fields and all neighbored fields with equal status.
+		"""
+
+		# get all neighbours of region containing 'field' and set them
+		# to 'what' (defaults to field status unless set).
+		self.set_fields(
+			self.nachbarn(self.get_region(field), status=what),
+			status
+		)
+
+		return
+
+
 	def regions(self, size=1, status=None):
 		"""
 		Returns a list of regions of a minimal size with fields status
@@ -670,41 +704,6 @@ class Map(object):
 		)
 
 		return region
-
-
-	def surround_with(self, field, status, what=None):
-		"""
-		Set the surrounding fields of a region. The region is calculated from
-		one fields and all neighbored fields with equal status.
-		"""
-
-		# get all neighbours of region containing 'field' and set them
-		# to 'what' (defaults to field status unless set).
-		self.set_fields(
-			self.nachbarn(self.get_region(field), status=what),
-			status
-		)
-
-		return
-
-
-	def print(self):
-		# print coodinates from X_SET (A..Z)
-		print( "    ", end="" )
-		for x in range(len(X_SET)):
-			print( X_SET[x], end=" ")
-		print()
-		print( "  +", len(X_SET) * '--', sep="")
-
-		for y in range(len(Y_SET)):
-			print( "{0:2}|".format(Y_SET[y]), end="")
-			for x in range(len(X_SET)):
-				val = self.map.get((x,y), 'none')
-				if isinstance(val, (int,float)):
-					print("{0:>2}".format(int(val)), end='')
-				else:
-					print("{0:>2}".format(LEGENDE[val]), end='')
-			print()
 
 
 ## classmethods
