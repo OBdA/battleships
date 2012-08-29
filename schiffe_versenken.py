@@ -41,7 +41,7 @@ LEGENDE = {
 STATUS_SET = set(LEGENDE.keys())
 
 
-SCHIFFE = [
+SHIPS = [
 	# valid keys: 'num', 'size', 'name'
 	{'num': 1, 'size': 5, 'name': 'Schlachtschiff'},
 	{'num': 2, 'size': 4, 'name': 'Kreuzer'},
@@ -776,7 +776,7 @@ if __name__ == '__main__':
 	# Set computer ships
 	p1 = Player()
 	p2 = Player(ki=True, level=00)
-	for ship in SCHIFFE:
+	for ship in SHIPS:
 		num = ship['num']
 		for n in range(num):
 			p1.place_ship(ship)
@@ -784,11 +784,11 @@ if __name__ == '__main__':
 
 	p1.cleanup_ships_map()
 	p1.send_message('ships_distributed', p1.ship_count)
-	p2.save_foes_ships(SCHIFFE)
+	p2.save_foes_ships(SHIPS)
 
 	p2.cleanup_ships_map()
 	p2.send_message('ships_distributed', p2.ship_count)
-	p1.save_foes_ships(SCHIFFE)
+	p1.save_foes_ships(SHIPS)
 
 	# initialze turn counter
 	turn = 0
