@@ -379,7 +379,7 @@ class Player(object):
 			field, status = self.last_result
 
 			# mark_hit_ship (level hard)
-			if status == 'hit' and RAND.randint(0,100) <= level + LEVEL['leicht']:
+			if status == 'hit' and RAND.randint(0,100) <= level + LEVEL['schwer']:
 				self._mark_hit_ship(field)
 				#print('level:',level,'mark_hit_ship_at:',field)
 
@@ -389,7 +389,7 @@ class Player(object):
 				#print('level:',level,'ship_is_sunk')
 
 			# rate unknown fields (level intermediate)
-			if RAND.randint(0,100) <= level + LEVEL['leicht']:
+			if RAND.randint(0,100) <= level + LEVEL['mittel']:
 				# what is the maximum ship size?
 				maximum = max(
 					[shipdef['size'] for shipdef in self.foeships \
@@ -775,7 +775,7 @@ if __name__ == '__main__':
 
 	# Set computer ships
 	p1 = Player()
-	p2 = Player(ki=True, level=99)
+	p2 = Player(ki=True, level=00)
 	for ship in SCHIFFE:
 		num = ship['num']
 		for n in range(num):
