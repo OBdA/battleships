@@ -1,46 +1,67 @@
 #! /usr/bin/python3
+# Terminal based 'battleships' game with a simple KI.
+#
+# Copyright 2012 by Olaf Ohlenmacher
 
+# Here we are. You may browse through this code and find some helpful
+# comments. Helpful in the way to understand the code and to learn
+# a little bit about python. So I did ;-)
+
+# The 'import' statement reads python modules.
+# For 'battleships' I need some randomness and at one point I need to
+# make a "real" copy of a datastructure. So, I import the module 'copy', too.
 import random
 import copy
 
 
-# Zufallsgenerator
-RAND = random.Random()
+## Cenventions
 
-##
-## Konventionen
-##
+# In battleships I need some things like "coordinates", "fields" or the
+# result of bombardments. In this section I list them:
 
-# <koor>	tuple()				Koordinaten mit x- und y-Koordinate
-# <fields>	set of <koor>		Menge von Koordinaten
-# <region>	list of <koor>		Liste von zusammenhängenden Koordinaten
-# <regions>	list of <region>	Liste von Regionen
-# <status>	{STATUS_SET}		Status eines Feldes, {'none','water','hit',...}
-# <result>	tuple()				Resultat: Tupel mit (Koordinate und Status)
+# <koor>	is a tuple() containing the coordinates of X- and Y-axis
+# <fields>	is a set of coordinates represented by a set of <koor>
+# <region>	is a list of connected fields represented by a list of <koor>
+# <regions>	is a list of <region>
+# <status>	is a status of a field represented by an element of {STATUS_SET}
+# <result>	is a result of an bombardment represented by the tuple()
+#           (<koor>, <status>)
 #
-# shipdef	is a dict()			keys: name, size, num
-# ship		is a <region>
-# ships		is a <regions>: a list of <region>
+# <shipdef>	is the decription of a ship represented by a dictionary
+#           containing the keys 'name' (type of the ship), 'size' (how
+#           fields is this ship) and 'num' (how many ships of this type
+#           are available
+# <ship>	is another name for <region>
+# <ships>	is another name for <regions>
+
 
 ##
-## Definitionen
+## Definitions and (hard coded) game configurations
 ##
 
-# Feldgrösse
+# Size of the Maps: possible values for X- and Y-coordinates 
 X_SET = tuple('ABCDEFGHIJ')
 Y_SET = tuple( range(1, 11))
 
-# Mögliche Inhalte eines Mapnfeldes
+# Here are all possible status for a field. On the left the identifier,
+# the map representation on the right side.
 LEGENDE = {
-	'none': 	'.',
-	'water':	'o',
-	'hit':		'+',
-	'sunk':		'*',
-	'ship':		'#'
+	'none': 	'.',	# no information available
+	'water':	'o',	# water field
+	'hit':		'+',	# on this field a ship was hit
+	'sunk':		'*',	# on this field a ship was sunk
+	'ship':		'#'		# 'ship' is for the hidden map only
 }
+
+# I need a set of all available status of a field. We take all the
+# right sides with keys(), arrange them as a set and put them into
+# STATUS_SET.
 STATUS_SET = set(LEGENDE.keys())
 
 
+# Here the set of ships are defined which will be placed by all players.
+# It's hard coded -- perhaps some day this will be placed in a config
+# file or will be asked interactivly at the beginning of "battleships".
 SHIPS = [
 	# valid keys: 'num', 'size', 'name'
 	{'num': 1, 'size': 5, 'name': 'Schlachtschiff'},
@@ -49,6 +70,7 @@ SHIPS = [
 	{'num': 4, 'size': 2, 'name': 'U-Boot'}
 ]
 
+# Yes, I tried to define some levels of difficulty.
 LEVEL = {
 	'easy': 80,
 	'intermediate': 50,
@@ -56,35 +78,73 @@ LEVEL = {
 }
 
 
+# For many thing I need randomness (e.g. the KI) or placing the ships on
+# the map. Because all parts of "battleshps" need random numbers we
+# define it here with global scope.
+#
+RAND = random.Random()
+
+
+# I need some classes for "battleships". I decided for two different
+# ones:
+# 	Player - an Player object represents all what a player needs: two
+# 		maps, a secret map to place his ships and an open map to track his
+# 		bombardments and it's results. With these maps Player defines
+# 		member functions to interact with these maps and with the player
+# 		itself.
+#	Map -    an Map object represents the piece of paper for a map and
+#		the pencil to write on it. It has member functions to read abd
+#		write a field and some esoteric functions to get an idea of
+#		what "neighbours" are.
+#
+# Now let see how I implemented these classes...
+
+# This is the Player class. It defines the type of player, his strenght
+# and how to interact with the player.
 class Player(object):
 
+	# The init functions set all member of this class. It takes two
+	# optional arguments: 'ki' is set to True if this is the computer
+	# player, 'level' to define it's strength.
 	def __init__(self, ki=False, level=50):
 
-		# Interactive or computer player
+		# Asking for 'human' I prefer before asking for dump, deadly
+		# fast calculating machines...so, I called the member 'human'.
+		# I called the "level" now 'ki_level' to make clear it is only
+		# valid for computer players, not for human ones.
 		self.human		= not ki
 		self.ki_level	= level
 
-		# Count all my ships and the foe's ships
+		# The Player needs some counters for counting his ships
+		# 'ship_count' which not sunk so far and a list of ships his foe
+		# has already. This is 'foeships'.
 		self.ship_count	= 0
 		self.foeships	= []
 
-		# The maps for my own ships and the hits
+		# Now the maps. Because the handling of maps may be difficult,
+		# this is encapsulated in another class called 'Map'. I called
+		# them 'ships' for the secret map the Player hold his own ships.
+		# And 'hits' which is his open map to track the bombardments.
 		self.ships	= Map()
 		self.hits	= Map()
 
-		# memory for the last turn's result
+		# The player (especially the KI) needs to remember the last
+		# turn's result. So here we hold space to save is...
 		self.last_result = None
 
 
 		## public methods
 
-		## bomb
-		## is_all_sunk
-		## place_ship
-		## turn
-		## send_message
 
-
+	# To play "battleships" you have to set up the game first. Some of
+	# this is done automatically while initialize the object (like
+	# create space and initializing counters). The placement of the
+	# ships should not be done automatically (but it is done yet in
+	# __main__).
+	# The following function places _one_ ship onto the secret map.
+	# Therefor it gets itself (the Player object) and a ship definition,
+	# containing the type and size of the ship.
+	#
 	def place_ship(self, shipdef):
 		"""
 		Randomly set a ship onto ship map and returns the ship region or
@@ -92,28 +152,43 @@ class Player(object):
 		"""
 		assert isinstance(shipdef, dict), "'shipdef' must be of type 'dict'"
 
+		# Get the type and the size of the ship from the ship
+		# definition.
 		what, size = shipdef['name'], shipdef['size']
+
+		# Just get the map in a shorthand form.
 		map = self.ships
 
-		# chose a free region with minimum size of the ship
+		# I calculate a list with all free regions with a minimum size
+		# of the ship's size, this is done with 'map.regions(size)'.
+		# Then I choose a region randomly from this list an return None
+		# to the caller if there is no space left.
 		region = RAND.choice(map.regions(size))
 		if len(region) == 0: return None
 
-		# get a starting point for the ship
+		# The returned region has a _minimum_ size and can be greater
+		# then the ship's size. I choose now the part of the region we
+		# use for the ship. I get the starting point first.
+		# This can be one of 'size - lenght-of-region' fields.
 		first = RAND.randint(0,len(region)-size)
 
-		# place the ship
+		# Now I set 'size' fields (beginning with the first field,
+		# choosen above) to the 'ship' status.
 		map.set_fields(region[first:first+size], 'ship')
 
-		# place water around all ship fields
+		# Thats important!
+		# Because the ships are not allowed to be connected, I set all
+		# surrounding fields to 'water'. These fields not empty anymore,
+		# so they will not be choosen to place a ship again.
 		map.set_fields(
 			map.nachbarn(set(region[first:first+size])),
 			'water')
 
+		# count this ship and return the region used
 		self.ship_count += 1
 		return region[first:first+size]
 
-
+#WORKING
 	def cleanup_ships_map(self):
 		"""
 		Cleanup the ships map of all the water fields.
