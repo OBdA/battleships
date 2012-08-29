@@ -1,23 +1,11 @@
 == BUGS
 == MAIN
-+	public/private methods (sortieren, umbenennen, löschen)
-	class Map()
-	def __init__
-	def get
-	def get_fields
-	def set
-	def set_fields
-	def print
-	def nachbarn --> neighbours()
-	def surround_with
-	def regions
-	def get_region  -> get_region_for()
-
-+	Wahrscheinlichkeit für KI-Funktionen abhängig von Schwierigkeitsgrad
-	festlegen 
-+	add more comments
 
 == DEVELOPMENT
++	add the ship type in result_message for hit and sunk ships
++	message for the result of the last turn, given at the beginning of the
+	next turn
++	configurable KI level
 +	rewrite of regions()
 +	split turn() into new human_turn()
 	gather all human commands and actions in new function
