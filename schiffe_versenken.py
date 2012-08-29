@@ -50,9 +50,9 @@ SCHIFFE = [
 ]
 
 LEVEL = {
-	'leicht': 80,
-	'mittel': 50,
-	'schwer': 20
+	'easy': 80,
+	'intermediate': 50,
+	'hard': 20
 }
 
 
@@ -379,17 +379,17 @@ class Player(object):
 			field, status = self.last_result
 
 			# mark_hit_ship (level hard)
-			if status == 'hit' and RAND.randint(0,100) <= level + LEVEL['schwer']:
+			if status == 'hit' and RAND.randint(0,100) <= level + LEVEL['hard']:
 				self._mark_hit_ship(field)
 				#print('level:',level,'mark_hit_ship_at:',field)
 
 			# mark_sunken_ship (level easy)
-			if status == 'sunk' and RAND.randint(0,100) <= level + LEVEL['leicht']:
+			if status == 'sunk' and RAND.randint(0,100) <= level + LEVEL['easy']:
 				self.hits.surround_with(field, 'water')
 				#print('level:',level,'ship_is_sunk')
 
 			# rate unknown fields (level intermediate)
-			if RAND.randint(0,100) <= level + LEVEL['mittel']:
+			if RAND.randint(0,100) <= level + LEVEL['intermediate']:
 				# what is the maximum ship size?
 				maximum = max(
 					[shipdef['size'] for shipdef in self.foeships \
@@ -402,7 +402,7 @@ class Player(object):
 
 			# rate best fields to detroy a ship which was hit
 			hits = self.hits.get_fields('hit')
-			if len(hits) > 0 and RAND.randint(0,100) <= level + LEVEL['leicht']:
+			if len(hits) > 0 and RAND.randint(0,100) <= level + LEVEL['easy']:
 				#print('level:', level, 'destroy_ship:',hits, end=' ')
 
 				# get one field, get the ship and find all empty neighbours
