@@ -182,7 +182,8 @@ class Player(object):
 		# so they will not be choosen to place a ship again.
 		map.set_fields(
 			map.nachbarn(set(region[first:first+size])),
-			'water')
+			'water'
+		)
 
 		# count this ship and return the region used
 		self.ship_count += 1
