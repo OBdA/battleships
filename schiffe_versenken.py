@@ -189,16 +189,18 @@ class Player(object):
 		self.ship_count += 1
 		return region[first:first+size]
 
-#WORKING
+
 	def cleanup_ships_map(self):
 		"""
-		Cleanup the ships map of all the water fields.
+		Cleanup the ships map of all the helpful water fields.
 		"""
 		map = self.ships
 		map.set_fields(map.get_fields('water'), 'none')
 
 
 	def save_foes_ships(self, shipdef):
+		# I have to copy this dictionary deeply, not copying the
+		# reference to it only.
 		self.foeships = copy.deepcopy(shipdef)
 
 
@@ -216,6 +218,8 @@ class Player(object):
 		Returns None when when player resigns or has no possible turn left.
 		"""
 		if self.human:
+			# This is the human part of turn() -- I do not comment it
+			# and left it to the reader...
 			if self.last_result:
 				lkoor,lstat = self.last_result
 				if lstat == 'sunk':
@@ -275,23 +279,37 @@ class Player(object):
 					print( "-- Häh? Versuche es mal mit 'hilfe'.")
 			return koor
 
-		# KI move
+		# This is the KI part.
+		# I create the 'target_map' with a set of the best moves. On the
+		# following lines I will add some more fields with calculated
+		# 'move rates' which helps to find the best move.
+		#
+		# _best_moves() tries to find the field with the highest
+		# possibility to find a foe's ship.
 		target_map = self._best_moves()
+
+		# get the highest rate from the target map
 		best_rate  = max(target_map.values())
+
+		# ...and get the best moves out of the target map
 		best_moves = [xy for xy,val in target_map.items() if val == best_rate]
 
+		# Now, get one of the best moves and return it!
 		f =  RAND.choice(best_moves)
 		print('foes turn: {} with {} points'.format(f, target_map[f]))
 		return f
 
 
 	def bomb(self, koor):
-		"""Bomb a field on the ship map and return the result."""
+		"""
+		Bomb a field on the ship map and return the result.
+		"""
 		assert isinstance(koor, tuple), "Need a tuple as field coordinate."
 
-		map = self.ships
 		result = None
+		map = self.ships
 		status = map.get(koor)
+
 		if status == 'ship' or status == 'hit':
 			map.set(koor, 'hit')
 
