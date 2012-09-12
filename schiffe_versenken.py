@@ -14,7 +14,7 @@ import random
 import copy
 
 
-## Cenventions
+## Conventions
 
 # In battleships I need some things like "coordinates", "fields" or the
 # result of bombardments. In this section I list them:
@@ -308,20 +308,26 @@ class Player(object):
 
 		result = None
 		map = self.ships
-		status = map.get(koor)
 
+		# get the status of the bombed field
+		status = map.get(koor)
 		if status == 'ship' or status == 'hit':
+			# We are hit!
 			map.set(koor, 'hit')
 
-			# check for sunken ship
+			# check wheter our ship was completly sunk
+			# get all neighbouring 'ship' or 'hit' fields
 			ship = map.nachbarn(
 				{koor}, status={'ship', 'hit'}, include=True, recursive=True
 			)
+			# get all 'hit' fields only
 			hits = map.nachbarn(
 				{koor}, status='hit', include=True, recursive=True
 			)
 #			print('SHIP:',ship,'HITS:',hits)
 
+			# compare the number of fields in the sets, if there more
+			# hits than ship fields this ship must be sunk
 			if len(ship-hits) < 1:
 				map.set_fields(ship, 'sunk')
 				self.ship_count -= 1
@@ -329,27 +335,32 @@ class Player(object):
 			else:
 				result =  (koor, 'hit')
 
+		# Oh yeah, only water was hit
 		elif status == 'none' or status == 'water':
 			map.set(koor, 'water')
 			result =  (koor, 'water')
 
+		# If something gets wrong we raise an exception
 		if result == None:
 			raise Exception("sync error in protocol", (koor, status))
 
+		# send a message and return
 		self.send_message('foe_has_' + result[1], result)
 		return result
 
 
 	def handle_result(self, result):
 		"""
-		Behandle alle möglichen Ergebnisse eines Bombardments des Gegeners.
+		Handle all the possible results of a bombardment
 		"""
 		assert isinstance(result, tuple), "<result> must be an tuple (koor,status)"
 
+		# we got the result, consisting of a coordinate and a result
 		koor,status = result
 		assert status in STATUS_SET, "no valid <status> in <result>"
-
 		map = self.hits
+
+		# Great! We sunk a ship!
 		if status == 'sunk':
 			map.set(koor, status)
 			ship = map.nachbarn( {koor}, {'hit','sunk'}, True, True)
@@ -357,7 +368,8 @@ class Player(object):
 			# mark sunken ship in my map
 			map.set_fields(ship, 'sunk')
 
-			# delete ship from the list of foe's ships
+			# find the sunken ship in the list of foe's ships and count
+			# it down -- save the name for the following message
 			name = None
 			for s in self.foeships:
 				if s['size'] == len(ship):
@@ -367,29 +379,41 @@ class Player(object):
 			if name == None:
 				raise Exception("Not existing ship sunk", [result,ship,len(ship)])
 
+			# send the message which ship was sunk
 			self.send_message('result_sunk', name, ship)
 
+		# Good, we hit a ship.
 		elif status == 'hit':
 			map.set(koor, status)
 			self.send_message( 'result_' + status, result )
 
+		# Oh, nothing noticeable hit.
 		elif status == 'water':
 			map.set(koor, status)
 			self.send_message( 'result_' + status, result )
 
+		# Damn! There must be something wrong...
 		else:
 			raise Exception("unable to handle result", result)
 
+		# Save the last result for later use and return
 		self.last_result = result
 		return
 
 
+	# This function does the communication part with the players. All
+	# possible messages are listed here. If you want to localize you
+	# only have to do this in this function.
+	# FIXME: do localize all messages
 	def send_message(self, msgid, *args):
 		"""
 		Send message to the player (only for interactive mode).
 		"""
 		if not self.human: return
 
+		# Perhaps, we should ask the player for his name and get it from
+		# the object here.
+		#FIXME: ask the player for his name in init code and use it here
 		name = 'Kapitän'
 		if msgid == 'ships_distributed':
 			print("{}! Es wurden {} Schiffe verteilt.".format(
@@ -440,12 +464,14 @@ class Player(object):
 
 	def _mark_hit_ship(self, field):
 		"""
-		Markiert die Felder diagonal, da hier kein Schiff liegen darf.
+		Mark the fields around a hit field which are 'diagonal', because
+		there can not be another ship.
 		"""
 		assert isinstance(field, tuple), "field must be a tuple"
 		assert field[0] in range(len(X_SET)) and field[1] in range(len(Y_SET)),\
 			"field must be element of (X_SET, Y_SET)"
 
+		# find all 'diagonal' fields and mark them as water
 		self.hits.set_fields(
 			self.hits.nachbarn({field}, filter='odd'),
 			'water'
@@ -454,47 +480,60 @@ class Player(object):
 		return
 
 
+	# Oh yeah -- the magical function which calculates the best moves.
+	# This is the one which give you a hint or let the computer move.
 	def _best_moves(self):
 		"""
-		Calculate the best move and return the coordinate.
+		Calculate the best move and return the coordinates.
 		"""
 
-		# Level (0-100), set to maximum if human request a good move
+		# I use a level for this KI, ranging from 0 to 100. If a human
+		# player ask fo a hint use the maximum value to get the best
+		# result.
 		level = self.ki_level
 		if self.human: level = 100
 
-		## we create a map with a rate for each field. the field with the
-		## highest rate will be bombed...
-
+		# I create a map with a rate for each field. The field with the
+		# highest rate will be bombed...
 		rate_map = dict()
 
-		## mark some fields from the last turn
+		# I use the result from the last turn to calculate some
+		# additional information, eg. to mark a hit field or a sunken
+		# ship. All thios is done with a certain possibility only.
 		if self.last_result != None:
 			field, status = self.last_result
 
-			# mark_hit_ship (level hard)
+			# to mark the 'diagonal' fields of a hit field is hard. (I
+			# got it after thinking a lot myself.)
 			if status == 'hit' and RAND.randint(0,100) <= level + LEVEL['hard']:
 				self._mark_hit_ship(field)
 				#print('level:',level,'mark_hit_ship_at:',field)
 
-			# mark_sunken_ship (level easy)
+			# mark a sunken ship my son got easily -- so it should easy
+			# too.
 			if status == 'sunk' and RAND.randint(0,100) <= level + LEVEL['easy']:
 				self.hits.surround_with(field, 'water')
 				#print('level:',level,'ship_is_sunk')
 
-			# rate unknown fields (level intermediate)
+			# got a rate for unknown fields i give the 'intermediate'
+			# level. My son got the idea fast (to bomb the big hole at
+			# the map), but to find the right field on the big holes are
+			# quite difficulty. 
 			if RAND.randint(0,100) <= level + LEVEL['intermediate']:
-				# what is the maximum ship size?
+				# what is the maximum ship size we are searching for?
 				maximum = max(
 					[shipdef['size'] for shipdef in self.foeships \
 					if shipdef['num'] > 0]
 				)
+				# get the rate map for the unknown fields and add them
+				# to our target map (rate_map)
 				rmap = self._rate_unknown_fields(size=maximum)
 				for f in rmap.keys():
 					rate_map[f] = rate_map.get(f,0) + rmap[f]
 				#print('level:',level,'rate_fields_size:',maximum)
 
-			# rate best fields to detroy a ship which was hit
+			# suppose we hit a ship on a turn formerly. This code trys
+			# to sunk all this ships we find.
 			hits = self.hits.get_fields('hit')
 			if len(hits) > 0 and RAND.randint(0,100) <= level + LEVEL['easy']:
 				#print('level:', level, 'destroy_ship:',hits, end=' ')
@@ -506,11 +545,15 @@ class Player(object):
 					status='none'
 				)
 
-				# add rate to all empty fields
+				# add rate to all this empty fields possibly containing
+				# the remaining ship -- use a static value of 20.
 				for f in fields:
 					rate_map[f] = rate_map.get(f,0) + 20
 
-		# fall-back
+		# This is a fall-back.
+		# If we are unlucky and get no target map this will rate all
+		# empty field with 1. At a result an empty field will be bombed
+		# randomly.
 		if self.last_result == None or len(rate_map) < 1:
 			rate_map = {koor:1 for koor in self.hits.get_fields('none')}
 			#print('LEVEL', level, 'random_field')
@@ -522,15 +565,25 @@ class Player(object):
 
 	def _rate_unknown_fields(self, size=1, rate=1):
 		"""
-		Bewertet unbekannte Felder der Map und gibt eine <target map> zurück.
-		Der Parameter 'size' gibt dabei die minimale Regionengrösse an
-		(default: 1).
-		Der Parameter 'rate' gibt die Basis zur Berechung der <target map>
-		(default: 1).
+		Rate unknown fields of the open map and return a <target map>.
+		The Parameter 'size' is the minimal size of a region (default: 1). 
+		Bewertet unbekannte Felder der Map und gibt eine <target map>
+		zurück. The parameter 'rate' is the basis to calculate the 
+		<target map> (default: 1).
 		"""
 
+		# initialize the <target map> as an dictionary
 		t_map = dict()
+
+		# get all regions with the minimum of 'size'
 		regions = self.hits.regions(size)
+
+		# now get all regions found and calculate a value list for each
+		# region. the calculated values are merged with the <target map>.
+		# The function calc_points() calculates for each field of a region a
+		# value, depending on the distance from the center of the region.
+		# fields in the center have the highest value, fields at the edge
+		# the lowest.
 		for region in regions:
 			val_list = calc_points(region, rate)
 			for k,v in val_list.items():
@@ -540,6 +593,10 @@ class Player(object):
 
 
 
+# This is the Map class. It defines one map with X/Y-Axis and methods for
+# accessing and manipulation the status for fields.
+#
+# The Contructor can be initialized with a dictionary.
 class Map(object):
 	def __init__(self, dict=None):
 		if dict == None:
@@ -548,6 +605,7 @@ class Map(object):
 			self.map = dict
 
 
+	# A simple access function for the status of a field.
 	def get(self, koor):
 		"""
 		Returns status of a field.
@@ -558,6 +616,7 @@ class Map(object):
 		return self.map.get(koor, 'none')
 
 
+	# This function returns all fields of a map with the given status.
 	def get_fields(self, status=None):
 		"""
 		Berechnet alle Felder, die den den Status 'status' haben.
@@ -570,18 +629,28 @@ class Map(object):
 		# set 'status' to None if 'none' is given
 		if status == 'none': status = None
 
+		# initialize the result list
 		list = set()
+
+		# I am searching the map (a dictionary) for fields which do not
+		# have a status. So I have to loop through all coordinates and see
+		# wheter there is some set or not. If nothing is set I add the
+		# coordinate to the list.
 		if status == None:
 			for x in range(len(X_SET)):
 				for y in range(len(Y_SET)):
 					if (x,y) not in self.map: list.add((x,y))
 			return list
 
+		# Here I am searching for fields with a status. Thats easier because
+		# I loop through all entries of the dictionary only and look if the
+		# fields equals to the status.
 		for k,s in self.map.items():
 			if status == s: list.add(k)
 		return list
 
 
+	# A simple access function for setting the the status of a field.
 	def set(self, koor, status):
 		"""
 		Set status of a field.
@@ -594,6 +663,7 @@ class Map(object):
 		return
 
 
+	# This function set the status of all fields to 'status'.
 	def set_fields(self, fields, status):
 		"""
 		Setze die Liste der Felder auf iden Feldstatus 'status'.
@@ -607,14 +677,20 @@ class Map(object):
 		return
 
 
+	# Here it comes! the terminal output of the map!
 	def print(self):
-		# print coodinates from X_SET (A..Z)
+		# I first print all cordinates of the X_SET with enough space for
+		# remarks of the Y-Axis
 		print( "    ", end="" )
 		for x in range(len(X_SET)):
 			print( X_SET[x], end=" ")
 		print()
 		print( "  +", len(X_SET) * '--', sep="")
 
+		# Now print the Y-Axis and for each X-Axis it's element. If it's a
+		# integer or float print is as integer. If the element is not a
+		# number use the LEGEND to get it's map representation. In both
+		# cases print it right assigned with a length of two ({0:2>}).
 		for y in range(len(Y_SET)):
 			print( "{0:2}|".format(Y_SET[y]), end="")
 			for x in range(len(X_SET)):
@@ -626,6 +702,14 @@ class Map(object):
 			print()
 
 
+	# BE CAREFUL!
+	# THIS IS A MYSTIC FUNCTION!
+	# It calculates all neighbouring fields. That sounds easy, but with the
+	# time I needed some more functionality and this function grows further.
+	# IMHO it grows too much and have to bee split up into pieces. If you
+	# have a good idea, just fork, hack on it and send me a pull request.
+	# Thanks in advance!
+	#
 	def nachbarn(self, fields, status=None, include=False, recursive=False, filter=None):
 		"""
 		Returns all neighbour fields of the given field list.
@@ -641,14 +725,22 @@ class Map(object):
 		assert filter == None or filter == 'odd' or filter == 'even',\
 			"filter only supports values: None, odd, even"
 
+		# First enhancement: the function should act not only to _one_
+		# status, but to a set of status (two and more). To support the old
+		# code I change all 'status' into a set (if needed).
 		# set 'status' to None if 'none' is given
 		if status != None and not isinstance(status, set):
 			status = {status}
 
-		# koor_last holds last neighbour set,
-		# needed for recursive final condition
+		# Second enhancement: neighbour() can act recursivly, so I needed
+		# the initial 'fields' for the final condition and save them in
+		# 'koor_last'.
 		koor_last = fields
 
+		# How I do the calculation?
+		# I create two list of potential coordinates, one for the X-axis and
+		# the other for the Y-axis. I put all the possible coordinates into
+		# them (eg. for X-axis that is: x, x-1, x+1).
 		result_set = set()
 		for koor in fields:
 			(x, y) = koor
@@ -668,6 +760,8 @@ class Map(object):
 			if y+1 in range(len(Y_SET)):
 				pot_y = pot_y + (y+1,)
 
+			# I loop through all the possible coordinates and add them to
+			# the result set if the status of the field is right.
 			# add all possible coordinates
 			for xi in pot_x:
 				for yi in pot_y:
@@ -675,28 +769,49 @@ class Map(object):
 					if status == None or stat in status:
 						result_set.add( (xi,yi) )
 
-			# recursive: final condition: neighbour set has not changed
+			# Oh, the recursive thing!
+			# First check the 'recursive' flag and the final condition. That
+			# is: end recursion if initial field set and calculated field
+			# set have equal size. If not: call neighbour function again
+			# with the result set as input fields. 
 			if recursive and len(result_set - koor_last) > 0:
 				result_set = self.nachbarn(
 					result_set, status, recursive=True, include=True
 				)
 
-		# delete original coordinates if 'include' is not set
+		# Third enhancement: do remove the initial fields from the result
+		# set. This is very practical if you try to mark all fields around
+		# of a ship as water... 
 		if not include:
+			#FIXME: if this is recursive, 'fields' do not hold the _inital_
+			#       set of fields!
 			for koor in fields:
 				if koor in result_set: result_set.remove(koor)
 
-		# apply filter to the target set
+		# Fourth enhancement: apply some filter ('odd' or 'even') on the
+		# result set (eg. get all 'diagonal' fields of a field which was
+		# hit)
 		if filter != None:
+			# I use only the first field for the calculation
 			field = fields.pop()
-			# QSUM is defined as (x + y) % 2
-			#   field is even: QSUM differs
-			#   field is odd:  QSUM does not differ
+
+			# To do the calculation I define the QSUM of a coordinate as
+			# QSUM := (x+y)%2
+			# The QSUM can only be '0' or '1', because of the modulo
+			# operation. Keep that in mind!
+			# A neighbouring field is
+			#    'even' when it's QSUM differs from the field's QSUM and
+			#    'odd'  when it's equal to the field's QSUM
+
+			# Instead of comparing both of the QSUMs I add one to the
+			# field's QSUM if we to filter the 'even' fields. So I can
+			# easily compare the values directly.
 			qsum = (field[0] + field[1]) % 2
 			if filter == 'even':
 				qsum = (field[0] + field[1] + 1) % 2
 
-			# delete all coordinates which QSUM differs
+			# Compute the QSUM of each field and take only the fields which
+			# QSUM equals with the computed value above.
 			result_set = set([k for k in result_set
 				if (k[0] + k[1]) % 2 == qsum
 			])
@@ -707,11 +822,14 @@ class Map(object):
 	def surround_with(self, field, status, what=None):
 		"""
 		Set the surrounding fields of a region. The region is calculated from
-		one fields and all neighbored fields with equal status.
+		one field and all neighbouring fields with equal status.
 		"""
 
-		# get all neighbours of region containing 'field' and set them
-		# to 'what' (defaults to field status unless set).
+		# This is a bit "syntactic sugar" for us. It a wrapper for
+		# neighbour() whith a additional set_fields() on the result.
+		# But this function looks much prettier than the
+		#     set_fields( neighbour( get_region()))
+		# thing I have to use otherwise...
 		self.set_fields(
 			self.nachbarn(self.get_region(field), status=what),
 			status
@@ -729,21 +847,42 @@ class Map(object):
 		assert size <= max(len(X_SET), len(Y_SET)), \
 			"size must not be greater then Y_SET and X_SET"
 
+		# Oh, I am searching for a much shorter variant for this function.
+		# Let's bbegin to talk about it.
+
+		# First I initialize the result list.
 		positions = []
-		# get all vertical regions
+
+		# I will searching first for all regions which lying on the X-axis.
+		# Afterwards I do the same searching on the Y-axis. So this code has
+		# it's code doubled -- just the axis are swapped.
+
+		# Loop through X_SET and Y_SET, in that order.
 		for x in range(len(X_SET)):
+			# This is the list of the coordinates that may (or may not)
+			# build a region of the wanted size.
 			pos = []
 			for y in range(len(Y_SET)):
+
+				# I add all coodinates of empty fields into the 'pos' list
+				# until there is a field which is set.
 				if status == None:
 					if (x,y) not in self.map:
 						pos.append((x,y))
 					else:
+						# Have we enough coordinates to build a region with
+						# a minimum of 'size'?
+						# If we have, append the 'pos' list as region to the
+						# result list and pass otherwise. And do not forget
+						# to empty the 'pos' list!
 						if len(pos) >= size:
 							positions.append(pos)
 						else:
 							pass
 						pos = []
 
+				# Here I have to add only fields with a special status. This
+				# is quite equal to the code above.
 				else:
 					if status == self.get((x,y)):
 						pos.append((x,y))
@@ -754,7 +893,10 @@ class Map(object):
 			if len(pos) >= size:
 				positions.append(pos); #print(x,y, 'got region', pos)
 
-		# horizontal regions
+		# Now I have done the vertical regions, now we have to do the same,
+		# just copy the code above and swap X_SET and Y_SET.
+		# It is quite a shame, but I have no idea yet to simplify the
+		# code...
 		for y in range(len(Y_SET)):
 			pos = []
 			for x in range(len(X_SET)):
@@ -781,6 +923,7 @@ class Map(object):
 		return positions
 
 
+#WORKING
 	def get_region(self, field, what=None):
 		"""
 		Returns a region containing 'field' and all fields with equal
