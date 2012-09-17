@@ -296,7 +296,7 @@ class Player(object):
 
 		# Now, get one of the best moves and return it!
 		f =  RAND.choice(best_moves)
-		print('foes turn: {} with {} points'.format(f, target_map[f]))
+		##print('foes turn: {} with {} points'.format(f, target_map[f]))
 		return f
 
 
@@ -1039,8 +1039,6 @@ if __name__ == '__main__':
 	winner	= None
 	loser	= None
 	while True:
-		print('turn',turn,'num_player',num_player)
-
 		# calculate which player is active or passive
 		active  = player[turn   % num_player]
 		passive = player[(turn+1) % num_player]
