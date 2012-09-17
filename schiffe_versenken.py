@@ -1007,9 +1007,6 @@ if __name__ == '__main__':
 
 	import re
 
-	ship_count = 0
-	sunk_count = 0
-
 	# Set computer ships
 	p1 = Player()
 	p2 = Player(ki=True, level=00)
