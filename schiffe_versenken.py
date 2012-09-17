@@ -436,11 +436,13 @@ class Player(object):
 			))
 
 		elif msgid == 'foe_has_sunk':
+			#FIXME: add type of the sunken ship
 			print("{}! Unser Gegner hat unser Schiff bei {} versenkt!".format(
 				name, as_xy(args[0][0])
 			))
 
 		elif msgid == 'foe_has_hit':
+			#FIXME: add type of the hit ship
 			print("{}! Unser Gegner hat unser Schiff bei {} getroffen!".format(
 				name, as_xy(args[0][0])
 			))
