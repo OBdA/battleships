@@ -923,7 +923,6 @@ class Map(object):
 		return positions
 
 
-#WORKING
 	def get_region(self, field, what=None):
 		"""
 		Returns a region containing 'field' and all fields with equal
@@ -931,11 +930,12 @@ class Map(object):
 		If 'what' is set surrounding fields must have field status 'what'.
 		"""
 
-		# set default field status to search for
+		# As default for 'what' use the field status of the given field.
 		if what == None:
 			what = self.get(field)
 
-		# get all neighbours of 'field' with equal field status
+		# Now call neighbours() recursivly and get all neighbours of 'field'
+		# with the field status 'what'. Return this as region.
 		region = self.nachbarn(
 			{field}, what, include=True, recursive=True
 		)
@@ -943,7 +943,10 @@ class Map(object):
 		return region
 
 
-## classmethods
+## Mmmhhh...
+## Here are some helper function like the print_help() functions to print some
+## help to human players.
+## These functions are implemented as classmethods.
 
 def _hilfe():
 	print( """
@@ -962,40 +965,68 @@ Was soll ich tun?
 	return
 
 
+# This little function calculates the rate for a single region. The fields on
+# the edges of the region is rated with 'rate' points. Each field mor to the
+# center is rated with 'rate' points additionally.
 def calc_points(region, rate=1):
 	"""
 	Returns <target map> of the given region.
 	Parameter 'rate' gives the base rate (default: 1).
 	"""
 
+	# First initialize the result dictionary. This will hold the coordinates
+	# with the rates.
 	values = {}
+
+	# Get the size of the region.
 	n = len(region)
+
+	# Because the rated are mirrored at the center of the region, there are
+	# only n/2 different values to calculate.
 	for i in range(n//2):
+		# calculate the value and assign it to the result dictionary
 		val = rate*(i+1) + n
 		values[region[i]] = val
 		values[region[-(i+1)]] = val
+	# If n is odd the middle field is missing:
+	# Lenght = 7:		7//2 = 3
+	# Counted values:	0,1,2
+	# Fields set:		2*3 = 6  ==> center field is missing
+	# calculate the corrext index for the center field and set it the value
+	# all the other fields got.
 	if n%2 != 0:
 		i = n//2
 		values[region[i]] = rate*(i+1) + n
 
+	# Return all the values.
 	return values
 
 
+# Small function to get the string representation of a coordinate.
 def as_xy(koor):
 	return X_SET[koor[0]] + str(Y_SET[koor[1]])
 
 
+# The reverse function to as_xy(): calculate the coordinate from the string
+# representation.
 def as_koor(string):
+	# A coordinate have to be consist of 2 chars minimum.
 	if len(string) < 2: return None
 
+	# I assume, that the first character is the X-axis, the rest of the string
+	# is the number of the Y-axis.
 	xs = string[0:1].upper()
 	ys = int(string[1:])
+
+	# Get the correct index from the X_SET and Y_SET. If an error occurs, like
+	# 'index not found', simply return nothing.
 	try:
 		x = X_SET.index(string[0:1].upper())
 		y = Y_SET.index(int(string[1:]))
 	except:
 		return None
 
+	# Return the result as tuple of X- and Y-axis.
 	return (x,y)
 
 
@@ -1007,57 +1038,80 @@ if __name__ == '__main__':
 
 	import re
 
-	# Set computer ships
+	# Initialize the game. Get two players: one of human type and one computer
+	# player with an AI (set the lowest level).
 	p1 = Player()
 	p2 = Player(ki=True, level=00)
+
+	# Now set all ships (for both players).
+	#FIXME: Let the human player set it's ship himself.
 	for ship in SHIPS:
 		num = ship['num']
 		for n in range(num):
 			p1.place_ship(ship)
 			p2.place_ship(ship)
 
+	# After placing the ships, clean up the ship map from all the 'water'
+	# marks we used to ensure that no ships are placed beneath each other.
 	p1.cleanup_ships_map()
+
+	# Send a message to the players that the ships were placed.
 	p1.send_message('ships_distributed', p1.ship_count)
+
+	# Save the player one's ships for player two.
 	p2.save_foes_ships(SHIPS)
 
+	# Do cleanup, message and counting for player two, too.
 	p2.cleanup_ships_map()
 	p2.send_message('ships_distributed', p2.ship_count)
 	p1.save_foes_ships(SHIPS)
 
-	# initialze turn counter
+	# Initialze the turn counter
 	turn = 0
 
-	# create a player's list
+	# Create a player's list. I use this list to loop through the players and
+	# let do their turn.
 	player = list()
 	player.append(p1)
 	player.append(p2)
 
-	# save number of players
+	# Save number of players
 	num_player = len(player)
 
-	# Nobody has won or loose, yet
+	# Initialize the WIN/LOOSE flags -- nobody has won or loose, yet
 	winner	= None
 	loser	= None
 	while True:
-		# calculate which player is active or passive
+		# This is a two player game. I calculate the active player with modulo
+		# operator on the turn counter. Save the 'active' and the 'passive'
+		# player.
 		active  = player[turn   % num_player]
 		passive = player[(turn+1) % num_player]
 
+		# If the active player has lost all ships, he has lost. the passive
+		# player has won.
 		if active.is_all_sunk():
 			loser	= active
 			winner	= passive
 			break
+
+		# Get the turn (aka coordinate) from the active player.
 		koor = active.turn()
+
+		# Has the player give not turn? Oh, he want to skip it's turn...
 		if koor == None:
 			# skip this turn
 			pass
 		else:
-			# take turn and handle result
+			# Bomb the coordinate from the passive player and handle the
+			# result for the active player.
 			active.handle_result(passive.bomb(koor))
 
+		# count up the turn counter.
 		turn += 1
 
-	# END OF GAME
+	# IT'S THE END OF THE GAME
+	# Send the last two messages of the game.
 	winner.send_message('you_win')
 	loser.send_message('you_lost')
 	exit(0)
