@@ -1,7 +1,22 @@
 #! /usr/bin/python3
 # Terminal based 'battleships' game with a simple KI.
 #
-# Copyright 2012 by Olaf Ohlenmacher
+#   Copyright 2012 Olaf Ohlenmacher
+#
+#   This file is part of battleships.
+#
+#   Battleships is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   Battleships is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with battleships.  If not, see <http://www.gnu.org/licenses/>.
 
 # Here we are. You may browse through this code and find some helpful
 # comments. Helpful in the way to understand the code and to learn
@@ -1032,6 +1047,25 @@ def as_koor(string):
 	return (x,y)
 
 
+def print_copyright():
+	print("""
+
+    Copyright 2012 Olaf Ohlenmacher
+
+    Battleships is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Battleships is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with battleships.  If not, see <http://www.gnu.org/licenses/>.
+
+""")
 ##
 ##  MAIN
 ##
@@ -1039,6 +1073,8 @@ def as_koor(string):
 if __name__ == '__main__':
 
 	import re
+
+	print_copyright()
 
 	# Initialize the game. Get two players: one of human type and one computer
 	# player with an AI (set the lowest level).
