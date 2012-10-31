@@ -196,7 +196,7 @@ class Player(object):
 		# surrounding fields to 'water'. These fields not empty anymore,
 		# so they will not be choosen to place a ship again.
 		map.set_fields(
-			map.nachbarn(set(region[first:first+size])),
+			map.neighbours(set(region[first:first+size])),
 			'water'
 		)
 
@@ -255,7 +255,7 @@ class Player(object):
 				if re.match('^(resign|aufgeben|quit|exit|ende|stop)', cmd):
 					exit(0)
 				elif re.match('^(hilfe|help)', cmd):
-					_hilfe()
+					_print_help()
 				elif re.match('^(skip)', cmd):
 					break
 				elif cmd == '':
@@ -332,11 +332,11 @@ class Player(object):
 
 			# check wheter our ship was completly sunk
 			# get all neighbouring 'ship' or 'hit' fields
-			ship = map.nachbarn(
+			ship = map.neighbours(
 				{koor}, status={'ship', 'hit'}, include=True, recursive=True
 			)
 			# get all 'hit' fields only
-			hits = map.nachbarn(
+			hits = map.neighbours(
 				{koor}, status='hit', include=True, recursive=True
 			)
 #			print('SHIP:',ship,'HITS:',hits)
@@ -378,7 +378,7 @@ class Player(object):
 		# Great! We sunk a ship!
 		if status == 'sunk':
 			map.set(koor, status)
-			ship = map.nachbarn( {koor}, {'hit','sunk'}, True, True)
+			ship = map.neighbours( {koor}, {'hit','sunk'}, True, True)
 
 			# mark sunken ship in my map
 			map.set_fields(ship, 'sunk')
@@ -490,7 +490,7 @@ class Player(object):
 
 		# find all 'diagonal' fields and mark them as water
 		self.hits.set_fields(
-			self.hits.nachbarn({field}, filter='odd'),
+			self.hits.neighbours({field}, filter='odd'),
 			'water'
 		)
 
@@ -557,7 +557,7 @@ class Player(object):
 
 				# get one field, get the ship and find all empty neighbours
 				field = hits.pop()
-				fields = self.hits.nachbarn(
+				fields = self.hits.neighbours(
 					self.hits.get_region(field),
 					status='none'
 				)
@@ -727,13 +727,13 @@ class Map(object):
 	# have a good idea, just fork, hack on it and send me a pull request.
 	# Thanks in advance!
 	#
-	def nachbarn(self, fields, status=None, include=False, recursive=False, filter=None):
+	def neighbours(self, fields, status=None, include=False, recursive=False, filter=None):
 		"""
 		Returns all neighbour fields of the given field list.
 		If 'status' is not None, only fields which status is 'status' will be
 		returned.
 		If 'include' is True, fields will be included into the result.
-		If 'recursive' is True, nachbarn() will be called recursivly onto
+		If 'recursive' is True, neighbours() will be called recursivly onto
 		the result until all reachable fields are found.
 		"""
 		assert isinstance(fields, set), "'fields' must be set of coordinates"
@@ -792,7 +792,7 @@ class Map(object):
 			# set have equal size. If not: call neighbour function again
 			# with the result set as input fields. 
 			if recursive and len(result_set - koor_last) > 0:
-				result_set = self.nachbarn(
+				result_set = self.neighbours(
 					result_set, status, recursive=True, include=True
 				)
 
@@ -848,7 +848,7 @@ class Map(object):
 		#     set_fields( neighbour( get_region()))
 		# thing I have to use otherwise...
 		self.set_fields(
-			self.nachbarn(self.get_region(field), status=what),
+			self.neighbours(self.get_region(field), status=what),
 			status
 		)
 
@@ -953,7 +953,7 @@ class Map(object):
 
 		# Now call neighbours() recursivly and get all neighbours of 'field'
 		# with the field status 'what'. Return this as region.
-		region = self.nachbarn(
+		region = self.neighbours(
 			{field}, what, include=True, recursive=True
 		)
 
@@ -965,7 +965,7 @@ class Map(object):
 ## help to human players.
 ## These functions are implemented as classmethods.
 
-def _hilfe():
+def _print_help():
 	print( """
 ende  - Du gibst auf und beendest das Spiel.
 skip  - Du verzichtest auf Deinen Zug.
