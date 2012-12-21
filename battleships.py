@@ -172,13 +172,13 @@ class Player(object):
 		what, size = shipdef['name'], shipdef['size']
 
 		# Just get the map in a shorthand form.
-		map = self.ships
+		mymap = self.ships
 
 		# I calculate a list with all free regions with a minimum size
-		# of the ship's size, this is done with 'map.regions(size)'.
+		# of the ship's size, this is done with 'mymap.regions(size)'.
 		# Then I choose a region randomly from this list an return None
 		# to the caller if there is no space left.
-		region = RAND.choice(map.regions(size))
+		region = RAND.choice(mymap.regions(size))
 		if len(region) == 0: return None
 
 		# The returned region has a _minimum_ size and can be greater
@@ -189,14 +189,14 @@ class Player(object):
 
 		# Now I set 'size' fields (beginning with the first field,
 		# choosen above) to the 'ship' status.
-		map.set_fields(region[first:first+size], 'ship')
+		mymap.set_fields(region[first:first+size], 'ship')
 
 		# Thats important!
 		# Because the ships are not allowed to be connected, I set all
 		# surrounding fields to 'water'. These fields not empty anymore,
 		# so they will not be choosen to place a ship again.
-		map.set_fields(
-			map.neighbours(set(region[first:first+size])),
+		mymap.set_fields(
+			mymap.neighbours(set(region[first:first+size])),
 			'water'
 		)
 
@@ -209,8 +209,8 @@ class Player(object):
 		"""
 		Cleanup the ships map of all the helpful water fields.
 		"""
-		map = self.ships
-		map.set_fields(map.get_fields('water'), 'none')
+		mymap = self.ships
+		mymap.set_fields(mymap.get_fields('water'), 'none')
 
 
 	def save_foes_ships(self, shipdef):
@@ -322,21 +322,21 @@ class Player(object):
 		assert isinstance(koor, tuple), "Need a tuple as field coordinate."
 
 		result = None
-		map = self.ships
+		mymap = self.ships
 
 		# get the status of the bombed field
-		status = map.get(koor)
+		status = mymap.get(koor)
 		if status == 'ship' or status == 'hit':
 			# We are hit!
-			map.set(koor, 'hit')
+			mymap.set(koor, 'hit')
 
 			# check wheter our ship was completly sunk
 			# get all neighbouring 'ship' or 'hit' fields
-			ship = map.neighbours(
+			ship = mymap.neighbours(
 				{koor}, status={'ship', 'hit'}, include=True, recursive=True
 			)
 			# get all 'hit' fields only
-			hits = map.neighbours(
+			hits = mymap.neighbours(
 				{koor}, status='hit', include=True, recursive=True
 			)
 #			print('SHIP:',ship,'HITS:',hits)
@@ -344,7 +344,7 @@ class Player(object):
 			# compare the number of fields in the sets, if there more
 			# hits than ship fields this ship must be sunk
 			if len(ship-hits) < 1:
-				map.set_fields(ship, 'sunk')
+				mymap.set_fields(ship, 'sunk')
 				self.ship_count -= 1
 				result =  (koor, 'sunk')
 			else:
@@ -352,7 +352,7 @@ class Player(object):
 
 		# Oh yeah, only water was hit
 		elif status == 'none' or status == 'water':
-			map.set(koor, 'water')
+			mymap.set(koor, 'water')
 			result =  (koor, 'water')
 
 		# If something gets wrong we raise an exception
@@ -373,15 +373,15 @@ class Player(object):
 		# we got the result, consisting of a coordinate and a result
 		koor,status = result
 		assert status in STATUS_SET, "no valid <status> in <result>"
-		map = self.hits
+		mymap = self.hits
 
 		# Great! We sunk a ship!
 		if status == 'sunk':
-			map.set(koor, status)
-			ship = map.neighbours( {koor}, {'hit','sunk'}, True, True)
+			mymap.set(koor, status)
+			ship = mymap.neighbours( {koor}, {'hit','sunk'}, True, True)
 
-			# mark sunken ship in my map
-			map.set_fields(ship, 'sunk')
+			# mark sunken ship in my mymap
+			mymap.set_fields(ship, 'sunk')
 
 			# find the sunken ship in the list of foe's ships and count
 			# it down -- save the name for the following message
@@ -399,12 +399,12 @@ class Player(object):
 
 		# Good, we hit a ship.
 		elif status == 'hit':
-			map.set(koor, status)
+			mymap.set(koor, status)
 			self.send_message( 'result_' + status, result )
 
 		# Oh, nothing noticeable hit.
 		elif status == 'water':
-			map.set(koor, status)
+			mymap.set(koor, status)
 			self.send_message( 'result_' + status, result )
 
 		# Damn! There must be something wrong...
@@ -615,11 +615,11 @@ class Player(object):
 #
 # The Contructor can be initialized with a dictionary.
 class Map(object):
-	def __init__(self, map=None):
-		if map == None:
+	def __init__(self, newmap=None):
+		if newmap == None:
 			self.map = {}
 		else:
-			self.map = map
+			self.map = newmap
 
 
 	# A simple access function for the status of a field.
