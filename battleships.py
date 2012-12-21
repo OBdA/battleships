@@ -490,7 +490,7 @@ class Player(object):
 
 		# find all 'diagonal' fields and mark them as water
 		self.hits.set_fields(
-			self.hits.neighbours({field}, filter='odd'),
+			self.hits.neighbours({field}, check='odd'),
 			'water'
 		)
 
@@ -727,7 +727,7 @@ class Map(object):
 	# have a good idea, just fork, hack on it and send me a pull request.
 	# Thanks in advance!
 	#
-	def neighbours(self, fields, status=None, include=False, recursive=False, filter=None):
+	def neighbours(self, fields, status=None, include=False, recursive=False, check=None):
 		"""
 		Returns all neighbour fields of the given field list.
 		If 'status' is not None, only fields which status is 'status' will be
@@ -737,10 +737,10 @@ class Map(object):
 		the result until all reachable fields are found.
 		"""
 		assert isinstance(fields, set), "'fields' must be set of coordinates"
-		assert filter == None or filter != None and len(fields) == 1,\
-			"filter only supported for single fields yet"
-		assert filter == None or filter == 'odd' or filter == 'even',\
-			"filter only supports values: None, odd, even"
+		assert check == None or check != None and len(fields) == 1,\
+			"check only supported for single fields yet"
+		assert check == None or check == 'odd' or check == 'even',\
+			"check only supports values: None, odd, even"
 
 		# First enhancement: the function should act not only to _one_
 		# status, but to a set of status (two and more). To support the old
@@ -805,10 +805,10 @@ class Map(object):
 			for koor in fields:
 				if koor in result_set: result_set.remove(koor)
 
-		# Fourth enhancement: apply some filter ('odd' or 'even') on the
+		# Fourth enhancement: apply some check ('odd' or 'even') on the
 		# result set (eg. get all 'diagonal' fields of a field which was
 		# hit)
-		if filter != None:
+		if check != None:
 			# I use only the first field for the calculation
 			field = fields.pop()
 
@@ -821,10 +821,10 @@ class Map(object):
 			#    'odd'  when it's equal to the field's QSUM
 
 			# Instead of comparing both of the QSUMs I add one to the
-			# field's QSUM if we to filter the 'even' fields. So I can
+			# field's QSUM if we to check the 'even' fields. So I can
 			# easily compare the values directly.
 			qsum = (field[0] + field[1]) % 2
-			if filter == 'even':
+			if check == 'even':
 				qsum = (field[0] + field[1] + 1) % 2
 
 			# Compute the QSUM of each field and take only the fields which
