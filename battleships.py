@@ -646,8 +646,8 @@ class Map(object):
 		# set 'status' to None if 'none' is given
 		if status == 'none': status = None
 
-		# initialize the result list
-		list = set()
+		# initialize the result fields
+		fields = set()
 
 		# I am searching the map (a dictionary) for fields which do not
 		# have a status. So I have to loop through all coordinates and see
@@ -656,15 +656,15 @@ class Map(object):
 		if status == None:
 			for x in range(len(X_SET)):
 				for y in range(len(Y_SET)):
-					if (x,y) not in self.map: list.add((x,y))
-			return list
+					if (x,y) not in self.map: fields.add((x,y))
+			return fields
 
 		# Here I am searching for fields with a status. Thats easier because
 		# I loop through all entries of the dictionary only and look if the
 		# fields equals to the status.
 		for k,s in self.map.items():
-			if status == s: list.add(k)
-		return list
+			if status == s: fields.add(k)
+		return fields
 
 
 	# A simple access function for setting the the status of a field.
