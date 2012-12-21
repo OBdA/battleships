@@ -615,11 +615,11 @@ class Player(object):
 #
 # The Contructor can be initialized with a dictionary.
 class Map(object):
-	def __init__(self, dict=None):
-		if dict == None:
+	def __init__(self, map=None):
+		if map == None:
 			self.map = {}
 		else:
-			self.map = dict
+			self.map = map
 
 
 	# A simple access function for the status of a field.
