@@ -1,4 +1,4 @@
-#! /usr/bin/python3
+#! /usr/bin/env python3
 # Terminal based 'battleships' game with a simple KI.
 #
 #   Copyright 2012 Olaf Ohlenmacher
