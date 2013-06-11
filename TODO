@@ -1,5 +1,14 @@
 == BUGS
 == MAIN
++ ändere Map.print() in Map.__str__
+
++ Iterator und die Funktion Map.neighbour()
+  Betrachte "neighbours" als Filter auf allen Feldern der Karte.
+  Optionen wie "include", "recursive" und "check" können auch als
+  Filter realisiert werden. 
+  Der Iterator gibt alle Felder, die richtigen werden von den Filtern
+  herausgefiltert.
+
 
 == DEVELOPMENT
 +	add the ship type in result_message for hit and sunk ships
