@@ -28,6 +28,7 @@
 import random
 import copy
 
+from Map import *
 
 ## Conventions
 
