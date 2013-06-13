@@ -2,7 +2,7 @@ from builtins import tuple as _tuple
 import unittest
 
 
-class Koor(tuple):
+class Coor(tuple):
     """
     Class for arbitrary 2-dimensional coordinates.
     """
@@ -15,31 +15,31 @@ class Koor(tuple):
         self.y = y
 
     def __repr__(self):
-        return "Koor" + super().__repr__()
+        return "Coor" + super().__repr__()
         
     def __str__(self):
         return "X=" + str(self.x) + " Y=" + str(self.y)
 
-class Test_Koor(unittest.TestCase):
+class Test_Coor(unittest.TestCase):
     def setUp(self):
-        self.koor = Koor(13,5)
+        self.coor = Coor(13,5)
         
     def test_init_instance(self):
-        self.assertIsInstance(self.koor, Koor, msg="Valid instance of Koor")
-        self.assertEqual(13, self.koor[0])
-        self.assertEqual(5,  self.koor[1])
+        self.assertIsInstance(self.coor, Coor, msg="Valid instance of Coor")
+        self.assertEqual(13, self.coor[0])
+        self.assertEqual(5,  self.coor[1])
 
-        self.assertEqual(13, self.koor.x, msg="shorthand for X")
-        self.assertEqual(5,  self.koor.y, msg="shorthand for Y")
+        self.assertEqual(13, self.coor.x, msg="shorthand for X")
+        self.assertEqual(5,  self.coor.y, msg="shorthand for Y")
         
-        nx = self.koor.x
+        nx = self.coor.x
         nx += 4
-        self.assertEqual(self.koor.x, 13, msg="is immutable")
+        self.assertEqual(self.coor.x, 13, msg="is immutable")
         
-        self.assertEqual("Koor(13, 5)", repr(self.koor),
+        self.assertEqual("Coor(13, 5)", repr(self.coor),
             msg="check object's repr()"
         )
-        self.assertEqual("X=13 Y=5", str(self.koor),
+        self.assertEqual("X=13 Y=5", str(self.coor),
             msg="check object's str()"
         )
         
