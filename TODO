@@ -1,6 +1,14 @@
 == BUGS
 == MAIN
+
 + ändere Map.print() in Map.__str__
+
++ rename 
+  - Player.hits  --> Player.map
+  - Player.ships --> Player.secret_map
+
++ create class Koor(tuple) ==> remove as_koor()
+  - entschärfe assert() für tuple|Koor
 
 + Iterator und die Funktion Map.neighbour()
   Betrachte "neighbours" als Filter auf allen Feldern der Karte.
@@ -30,8 +38,8 @@
 	eine Liste aller Schiffe zurück.
 	Default für Fields: self._get_fields(LEGENDE['hit'])
 
-==	FEATURES
-+	import Tk for graphical interface
+==	TARGETS
++	run this on Android!
 +	pimp the AI
 +	add more rules
 	- free turn if you hit a ship
