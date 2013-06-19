@@ -16,7 +16,7 @@ class Coor(tuple):
 
     def __repr__(self):
         return "Coor" + super().__repr__()
-        
+
     def __str__(self):
         return "X=" + str(self.x) + " Y=" + str(self.y)
 
@@ -29,24 +29,39 @@ class Coor(tuple):
 class Map(object):
     """
     Create a map object.
-    If *initial_map* is defined *x_list* and *y_list* will be dereived from 
+    If *initial_map* is defined *x_list* and *y_list* will be dereived from
     this *initial_map*.
     """
     def __init__( self,
                   x_list=tuple('ABCDEFGHIJ'), y_list=tuple(range(1, 11)),
-                  initial_map=None
-    ):
-        assertIsInstance(x_list, tuple)
-        assertIsInstance(y_list, tuple)
+                  initial_map=None):
+        assert isinstance(x_list, (str, range, tuple))
+        assert isinstance(y_list, (str, range, tuple))
 
-        if initial_map == None:
+        if not initial_map:
             self.map = {}
-            self.x_set = x_set
-            self.y_set = y_set
+            self.x_coor = tuple(x_list)
+            self.y_coor = tuple(y_list)
         else:
             self.map = initial_map
-            self.x_set = initial_map.x_set
-            self.y_set = initial_map.y_set
+            self.x_coor = initial_map.x_coor
+            self.y_coor = initial_map.y_coor
+
+
+    def is_coor(self, coor):
+        """
+        Returns True if coor is a valid coordinate for this map,
+        False otherwise.
+        """
+        assert isinstance(coor, tuple)
+
+        if len(coor) != 2:
+            raise ValueError("coordinates exactly have two elements")
+
+        if coor[0] in self.x_coor and coor[1] in self.y_coor:
+            return True
+        return False
+
 
     # A simple access function for the status of a field.
     def get(self, koor):
@@ -216,7 +231,7 @@ class Map(object):
             # First check the 'recursive' flag and the final condition. That
             # is: end recursion if initial field set and calculated field
             # set have equal size. If not: call neighbour function again
-            # with the result set as input fields. 
+            # with the result set as input fields.
             if recursive and len(result_set - koor_last) > 0:
                 result_set = self.neighbours(
                     result_set, status, recursive=True, include=True
@@ -224,7 +239,7 @@ class Map(object):
 
         # Third enhancement: do remove the initial fields from the result
         # set. This is very practical if you try to mark all fields around
-        # of a ship as water... 
+        # of a ship as water...
         if not include:
             #FIXME: if this is recursive, 'fields' do not hold the _inital_
             #       set of fields!
@@ -389,7 +404,7 @@ class Map(object):
 class Test_Coor(unittest.TestCase):
     def setUp(self):
         self.coor = Coor(13,5)
-        
+
     def test_init_instance(self):
         self.assertIsInstance(self.coor, Coor, msg="Valid instance of Coor")
         self.assertEqual(13, self.coor[0])
@@ -397,19 +412,44 @@ class Test_Coor(unittest.TestCase):
 
         self.assertEqual(13, self.coor.x, msg="shorthand for X")
         self.assertEqual(5,  self.coor.y, msg="shorthand for Y")
-        
+
         nx = self.coor.x
         nx += 4
         self.assertEqual(self.coor.x, 13, msg="is immutable")
-        
+
         self.assertEqual("Coor(13, 5)", repr(self.coor),
             msg="check object's repr()"
         )
         self.assertEqual("X=13 Y=5", str(self.coor),
             msg="check object's str()"
         )
-        
+
+
+class Test_Map(unittest.TestCase):
+    def setUp(self):
+        pass
+	    #self.map = Map()
+
+    def test_init(self):
+        m = Map()
+        self.assertIsInstance(m, Map, "simple __init__")
+
+    def test_init_with_coor(self):
+        m = Map("ABC", range(1,4))
+        self.assertIsInstance(m, Map, "__init__ with coordinate tuples")
+
+    def test_check_coor(self):
+        m = Map("ABC", range(1,4))
+        self.assertTrue(m.is_coor(('B',1)), "check valid coor")
+        self.assertTrue(m.is_coor(('C',3)), "check valid coor")
+        self.assertFalse(m.is_coor(('a',1)), "check invalid coor")
+        self.assertFalse(m.is_coor(('A',4)), "check invalid coor")
+
+
+
 if __name__ == '__main__':
     unittest.main()
 
+
+# vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
 #EOF
