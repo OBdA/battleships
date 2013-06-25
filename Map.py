@@ -48,7 +48,7 @@ class Map(object):
             self.y_coor = initial_map.y_coor
 
 
-    def is_coor(self, coor):
+    def is_valid_coor(self, coor):
         """
         Returns True if coor is a valid coordinate for this map,
         False otherwise.
@@ -440,10 +440,10 @@ class Test_Map(unittest.TestCase):
 
     def test_check_coor(self):
         m = Map("ABC", range(1,4))
-        self.assertTrue(m.is_coor(('B',1)), "check valid coor")
-        self.assertTrue(m.is_coor(('C',3)), "check valid coor")
-        self.assertFalse(m.is_coor(('a',1)), "check invalid coor")
-        self.assertFalse(m.is_coor(('A',4)), "check invalid coor")
+        self.assertTrue(m.is_valid_coor(('B',1)), "check valid coor")
+        self.assertTrue(m.is_valid_coor(('C',3)), "check valid coor")
+        self.assertFalse(m.is_valid_coor(('a',1)), "check invalid coor")
+        self.assertFalse(m.is_valid_coor(('A',4)), "check invalid coor")
 
 
 
