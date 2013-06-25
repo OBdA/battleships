@@ -72,7 +72,7 @@ class Map(object):
         """
         assert self.is_valid_coor(coor),	"request tuple for coordinates"
 
-        return self.map.get(coor, 'none')
+        return self.map.get(coor, None)
 
 
     # This function returns all fields of a map with the given status.
@@ -84,9 +84,6 @@ class Map(object):
 
         Returns fields with 'status' (default: unknown status)
         """
-
-        # set 'status' to None if 'none' is given
-        if status == 'none': status = None
 
         # initialize the result fields
         fields = set()
@@ -153,7 +150,7 @@ class Map(object):
         for y in range(len(Y_SET)):
             print( "{0:2}|".format(Y_SET[y]), end="")
             for x in range(len(X_SET)):
-                val = self.map.get((x,y), 'none')
+                val = self.map.get((x,y), None)
                 if isinstance(val, (int,float)):
                     print("{0:>2}".format(int(val)), end='')
                 else:
@@ -187,7 +184,6 @@ class Map(object):
         # First enhancement: the function should act not only to _one_
         # status, but to a set of status (two and more). To support the old
         # code I change all 'status' into a set (if needed).
-        # set 'status' to None if 'none' is given
         if status != None and not isinstance(status, set):
             status = {status}
 

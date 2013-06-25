@@ -62,7 +62,7 @@ Y_SET = tuple( range(1, 11))
 # Here are all possible status for a field. On the left the identifier,
 # the map representation on the right side.
 LEGENDE = {
-	'none': 	'.',	# no information available
+	None: 	'.',	# no information available
 	'water':	'o',	# water field
 	'hit':		'+',	# on this field a ship was hit
 	'sunk':		'*',	# on this field a ship was sunk
@@ -211,7 +211,7 @@ class Player(object):
 		Cleanup the ships map of all the helpful water fields.
 		"""
 		mymap = self.ships
-		mymap.set_fields(mymap.get_fields('water'), 'none')
+		mymap.set_fields(mymap.get_fields('water'), None)
 
 
 	def save_foes_ships(self, shipdef):
@@ -282,7 +282,7 @@ class Player(object):
 							"einer Zahl ein.\n-- Zum Beispiel: {0}{1}"\
 							.format(RAND.choice(X_SET),RAND.choice(Y_SET)) )
 						continue
-					elif bomb_map.get(koor) != 'none':
+					elif bomb_map.get(koor) != None:
 						feld = bomb_map.get(koor)
 						print( "-- Oh, Captain!")
 						print( "-- Im Feld {0} ist doch schon '{1}'".format(
@@ -352,7 +352,7 @@ class Player(object):
 				result =  (koor, 'hit')
 
 		# Oh yeah, only water was hit
-		elif status == 'none' or status == 'water':
+		elif status == None or status == 'water':
 			mymap.set(koor, 'water')
 			result =  (koor, 'water')
 
@@ -560,7 +560,7 @@ class Player(object):
 				field = hits.pop()
 				fields = self.hits.neighbours(
 					self.hits.get_region(field),
-					status='none'
+					status=None
 				)
 
 				# add rate to all this empty fields possibly containing
@@ -573,7 +573,7 @@ class Player(object):
 		# empty field with 1. At a result an empty field will be bombed
 		# randomly.
 		if self.last_result == None or len(rate_map) < 1:
-			rate_map = {koor:1 for koor in self.hits.get_fields('none')}
+			rate_map = {koor:1 for koor in self.hits.get_fields(None)}
 			#print('LEVEL', level, 'random_field')
 		#print('LEVEL', level, 'RATED MAP IS:')
 		#Map(rate_map).print()
@@ -631,7 +631,7 @@ class Map(object):
 		assert isinstance(koor,tuple),	"request tuple for coordinates"
 		assert len(koor) == 2,			"need two coordinates"
 
-		return self.map.get(koor, 'none')
+		return self.map.get(koor, None)
 
 
 	# This function returns all fields of a map with the given status.
@@ -643,9 +643,6 @@ class Map(object):
 
 		Returns fields with 'status' (default: unknown status)
 		"""
-
-		# set 'status' to None if 'none' is given
-		if status == 'none': status = None
 
 		# initialize the result fields
 		fields = set()
@@ -712,7 +709,7 @@ class Map(object):
 		for y in range(len(Y_SET)):
 			print( "{0:2}|".format(Y_SET[y]), end="")
 			for x in range(len(X_SET)):
-				val = self.map.get((x,y), 'none')
+				val = self.map.get((x,y), None)
 				if isinstance(val, (int,float)):
 					print("{0:>2}".format(int(val)), end='')
 				else:
@@ -746,7 +743,6 @@ class Map(object):
 		# First enhancement: the function should act not only to _one_
 		# status, but to a set of status (two and more). To support the old
 		# code I change all 'status' into a set (if needed).
-		# set 'status' to None if 'none' is given
 		if status != None and not isinstance(status, set):
 			status = {status}
 
