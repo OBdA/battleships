@@ -1,3 +1,5 @@
+#! /usr/bin/env python3
+
 from builtins import tuple as _tuple
 import unittest
 
