@@ -66,14 +66,13 @@ class Map(object):
 
 
     # A simple access function for the status of a field.
-    def get(self, koor):
+    def get(self, coor):
         """
         Returns status of a field.
         """
-        assert isinstance(koor,tuple),	"request tuple for coordinates"
-        assert len(koor) == 2,			"need two coordinates"
+        assert self.is_valid_coor(coor),	"request tuple for coordinates"
 
-        return self.map.get(koor, 'none')
+        return self.map.get(coor, 'none')
 
 
     # This function returns all fields of a map with the given status.
